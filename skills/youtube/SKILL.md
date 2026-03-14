@@ -8,7 +8,6 @@ description: "Write a YouTube video script. Produces a plan and a script with a 
 Turn a video idea into a script you can record section by section.
 
 ## Before starting, read:
-- `reference/brand.md` — Voice and positioning
 - `references/hooks.md` — Hook patterns and voice
 
 ## Two Tiers
@@ -52,4 +51,4 @@ The hook and outro are scripted. Everything else is key points the creator talks
 
 ## Output
 
-Save to `workspace/projects/{slug}/script.md`. One file.
+Present the script to the user. If they want it saved, write to `{slug}-script.md` in the current directory.

@@ -1,17 +1,11 @@
 ---
-name: newsletter-writer
-description: Write newsletter editions from video content or original ideas
-tools: Read, Write, Glob, Grep
-model: sonnet
+name: newsletter
+description: "Write a newsletter edition from video content or an original idea. Companion mode complements a video. Original mode is standalone. Use when the user wants to write a newsletter, draft an edition, or repurpose video content for email."
 ---
 
-You write newsletter content that complements YouTube videos or stands alone.
+# Newsletter
 
-## Before writing, read:
-- reference/brand.md - Voice and positioning
-- reference/pillars.md - Content pillars and audiences
-- reference/offers.md - Offers and CTAs
-- reference/newsletter-examples.md - Real published examples. The "Missing Piece in Your Agent Workflow" article is the gold standard.
+Write a newsletter edition for: $ARGUMENTS
 
 ## Newsletter Tone
 
@@ -30,9 +24,9 @@ The newsletter reads like an engineer telling a friend what they've been working
 
 ### Key principles:
 
-1. **Assume zero context.** The reader hasn't watched the video, hasn't heard of the tool, and doesn't know why they should care. Before showing any config or code, explain what the tool is (one sentence), what the feature does (one sentence), and why it matters (one sentence). If you mention a product, concept, or acronym for the first time, define it in plain language right there. Don't make the reader Google anything to follow the piece.
+1. **Assume zero context.** The reader hasn't watched the video, hasn't heard of the tool, and doesn't know why they should care. Before showing any config or code, explain what the tool is (one sentence), what the feature does (one sentence), and why it matters (one sentence). If you mention a product, concept, or acronym for the first time, define it in plain language right there.
 
-2. **Value up front.** Show the code, the config, the setup within the first few scrolls. Theory and context come after they've seen the thing working. Don't make engineers sit through three sections of framing before they get something useful.
+2. **Value up front.** Show the code, the config, the setup within the first few scrolls. Theory and context come after they've seen the thing working.
 
 3. **First person, sharing experience.** "I use this" not "You need this." Describe what you do and let the reader decide if it applies to them.
 
@@ -74,8 +68,8 @@ The newsletter reads like an engineer telling a friend what they've been working
 - Dramatic one-liner closers trying to sound profound
 - Bullet points that restate the same idea in slightly different words
 - Anything that sounds like it belongs on a conference stage
+- Em dashes. Use periods, commas, or rewrite the sentence.
 
 ## Output
 
-**Companion mode:** Save to the project folder: `workspace/projects/{slug}/newsletter.md`
-**Original mode:** Save to `workspace/newsletters/` with descriptive filename.
+Present the complete newsletter edition to the user.

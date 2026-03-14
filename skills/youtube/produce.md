@@ -3,10 +3,8 @@
 **Goal:** Produce a single script file the creator can record from, section by section.
 
 ## Before starting, read:
-- `reference/brand.md` — Voice and positioning
 - `references/hooks.md` — Hook patterns and voice
 - The project's `research.md` if it exists
-- `reference/offers.md` — Only when writing the Outro/CTA
 
 ---
 
@@ -69,7 +67,7 @@ Using the brain dump, fill out the Plan. This is the filter — if it's weak, th
 - **Goal** — one sentence. What the viewer can DO after watching (not just understand).
 - **The confusion** — what problem or misconception does this video cut through? If you can't name a specific confusion, the video doesn't need to exist.
 - **Key points** — 3-4 things the video must deliver. Each one should change what the viewer is able to do.
-- **CTA** — pick from `reference/offers.md`
+- **CTA** — YouTube subscribe, newsletter (newsletter.owainlewis.com), or Skool community (skool.com/aiengineer)
 - **Artifact** — what tangible thing does this video produce? (repo, template, open-source tool, named system, or none)
 - **Tier** — Flagship (15-25 min, full process) or Short Tactical (3-8 min, lighter process)
 - **Pillar / Length**
@@ -217,7 +215,7 @@ These rules determine whether the video is worth watching or just another tutori
 
 ## Output
 
-Save to `workspace/projects/{slug}/script.md`. One file — Plan at the top, then all sections.
+Present the script to the user. If they want it saved, write to `{slug}-script.md` in the current directory. One file — Plan at the top, then all sections.
 
 ---
 
@@ -327,7 +325,7 @@ Total: 3-8 minutes.
 1. {point}
 2. {point}
 3. {point}
-**CTA:** {from offers.md}
+**CTA:** {YouTube subscribe / newsletter / Skool community}
 **Pillar:** {pillar} | **Length:** {X min}
 
 ---

@@ -91,6 +91,4 @@ Owain
 
 ## Output
 
-Save to `workspace/projects/{slug}/kit-email.md`.
-
-Include the complete email (ready to paste into Kit) and word count.
+Present the complete email (ready to paste into Kit) and word count.

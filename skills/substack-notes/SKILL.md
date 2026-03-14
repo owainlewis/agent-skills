@@ -50,6 +50,4 @@ Two agents editing the same file will overwrite each other. No merge conflicts, 
 
 ## Output
 
-Save to `workspace/projects/{slug}/substack-notes.md`.
-
-Format each note with a blank line between them. Include character count for each note.
+Present the notes to the user. Format each note with a blank line between them. Include character count for each note.

@@ -8,8 +8,6 @@ description: "Research a YouTube video topic. Searches the competitive landscape
 Research a topic and find the angle that makes your video worth watching.
 
 ## Before starting, read:
-- `reference/brand.md` — Voice and positioning
-- `reference/pillars.md` — Content pillars and audiences
 - `references/title.md` — Title patterns and rules
 
 ## Tool
@@ -18,16 +16,16 @@ This skill has a Python script that queries the YouTube Data API v3.
 
 ```bash
 # Search for videos on a topic
-uv run .claude/skills/youtube-research/youtube.py search "AI agents" --max 10
+uv run youtube.py search "AI agents" --max 10
 
 # Search recent videos only
-uv run .claude/skills/youtube-research/youtube.py search "AI agents" --max 10 --days 30
+uv run youtube.py search "AI agents" --max 10 --days 30
 
 # Sort by view count
-uv run .claude/skills/youtube-research/youtube.py search "AI agents" --order view_count
+uv run youtube.py search "AI agents" --order view_count
 
 # Get a creator's recent videos with outlier analysis
-uv run .claude/skills/youtube-research/youtube.py creator @mkbhd --days 90
+uv run youtube.py creator @mkbhd --days 90
 ```
 
 Requires `YOUTUBE_API_KEY` environment variable.
@@ -48,8 +46,8 @@ Optional:
 Use the script to find existing videos on this topic. Run 2-3 queries with different phrasings to get broad coverage.
 
 ```bash
-uv run .claude/skills/youtube-research/youtube.py search "topic phrase 1" --max 10
-uv run .claude/skills/youtube-research/youtube.py search "topic phrase 2" --max 10
+uv run youtube.py search "topic phrase 1" --max 10
+uv run youtube.py search "topic phrase 2" --max 10
 ```
 
 ### 2. Build Competitor Table
@@ -68,7 +66,7 @@ Look for outlier titles with unusually high views relative to the channel's size
 If a specific creator dominates the results, pull their channel to understand their patterns:
 
 ```bash
-uv run .claude/skills/youtube-research/youtube.py creator @channelhandle --days 90
+uv run youtube.py creator @channelhandle --days 90
 ```
 
 Look at their outlier scores to see which titles and topics over-performed.
@@ -111,7 +109,7 @@ Based on the topic and gap, recommend:
 
 ## Output
 
-Save to `workspace/projects/{slug}/research.md`:
+Present the research to the user. If they want it saved, write to `{slug}-research.md` in the current directory:
 
 ```markdown
 # Research: {Topic}

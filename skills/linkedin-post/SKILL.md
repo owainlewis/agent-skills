@@ -11,9 +11,6 @@ This is a two-phase process. Do NOT write a full post in Phase 1.
 
 ## Before starting, read:
 
-- `reference/brand.md` — Voice and positioning
-- `reference/pillars.md` — Content pillars and audiences
-- `reference/offers.md` — Offers and CTAs
 - `references/strategy.md` — Content buckets, cadence, idea sources, formats
 
 ---
@@ -105,30 +102,21 @@ PS: I run a community for engineers building with AI. Coding tools, production s
 
 ---
 
-## Phase 3: Review
+## Phase 3: Self-Review Checklist
 
-After writing the full post, run the `linkedin-reviewer` agent in a separate context window using the Task tool (subagent_type: "general-purpose" or the linkedin-reviewer agent).
-
-Pass the reviewer:
-1. The full draft text
-2. The topic/source material it was based on
-
-The reviewer checks against brand rules, structure, voice, and truth. It returns:
-- Issues found (with specific lines quoted)
-- Gaps needing author input (real examples, experiences)
-- A revised draft
-
-**Hard rule:** The reviewer NEVER fabricates stories, examples, or results. If the post needs a real example to land, it flags it as `[NEEDS REAL EXAMPLE]` for the author to fill in.
-
-Present the user with:
-- The revised post
-- A summary of what changed
-- Any `[NEEDS REAL EXAMPLE]` flags they need to fill in before publishing
+Before presenting the final post, verify:
+- [ ] Plain text only (no markdown, asterisks, backticks)
+- [ ] Under 3000 characters
+- [ ] No em dashes
+- [ ] No external links in post body
+- [ ] No filenames that render as URLs (e.g. .md extensions)
+- [ ] Hook is specific to this topic, not a generic template
+- [ ] One idea per post
+- [ ] CTA is included
+- [ ] No fabricated stories or results. Flag `[NEEDS REAL EXAMPLE]` where the author needs to fill in.
 
 ---
 
 ## Output
 
-Save to `workspace/linkedin/` with a descriptive filename.
-
-Include the complete post (ready to copy-paste), hook pattern used, and character count.
+Present the complete post (ready to copy-paste), hook pattern used, and character count.
