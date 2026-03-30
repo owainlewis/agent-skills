@@ -6,7 +6,8 @@ CLAUDE_SKILLS="$HOME/.claude/skills"
 
 mkdir -p "$CLAUDE_SKILLS"
 
-echo "Installing skills from $REPO_DIR"
+echo "Installing skills from $REPO_DIR/skills/"
+echo ""
 
 # Remove existing symlinks that point into this repo
 for link in "$CLAUDE_SKILLS"/*/; do
@@ -18,13 +19,15 @@ for skill in "$REPO_DIR"/skills/*/; do
     name="$(basename "$skill")"
     target="$CLAUDE_SKILLS/$name"
 
-    if [ -e "$target" ] && [ ! -L "$target" ]; then
-        echo "  SKIP $name (non-symlink already exists)"
-        continue
-    fi
-
+    rm -rf "$target"
     ln -sf "$skill" "$target"
-    echo "  OK   $name"
+    echo "  OK  $name"
 done
 
-echo "Done. $(ls -1d "$CLAUDE_SKILLS"/*/ 2>/dev/null | wc -l | tr -d ' ') skills installed."
+echo ""
+echo "Done. $(ls -1d "$CLAUDE_SKILLS"/*/ 2>/dev/null | wc -l | tr -d ' ') skills installed to $CLAUDE_SKILLS"
+echo ""
+echo "Next steps:"
+echo "  1. Open the SKILL.md files and replace [YOUR NAME], [YOUR URL] etc. with your details"
+echo "  2. Add your own examples to the Examples sections"
+echo "  3. Use /linkedin-post or /substack-notes in Claude Code"

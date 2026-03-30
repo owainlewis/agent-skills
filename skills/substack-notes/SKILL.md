@@ -1,53 +1,94 @@
 ---
 name: substack-notes
-description: "Write 2-3 Substack notes — short standalone insights from a video. Use when the user wants to create Substack notes, write short-form content for Substack, or repurpose video content into micro-posts."
+description: "Write a Substack note or short-form post. Use when the user wants to write a Substack note, short-form social post, or distill an idea into a tight observation."
 ---
 
-# Substack notes
+# Substack Note
 
-Write Substack notes for: $ARGUMENTS
-
----
-
-## What these are
-
-Short, standalone insights pulled from a video. Each one should make sense on its own — a reader who never watches the video should still get value. Think of them as micro-observations, not previews.
+Write a Substack note for: $ARGUMENTS
 
 ---
 
-## Constraints
+## The Pattern
 
-- 2-3 notes per video
-- Each note: 100-280 characters
-- Plain text, no markdown, no hashtags
-- End with a natural reference to the video
+Every strong note follows the same underlying movement:
+
+1. **Name a common assumption or behaviour** - something real, observed, not assembled from principles
+2. **Introduce the friction or gap** - where reality diverges from the assumption
+3. **Land the reframe** - a conclusion that changes how the reader sees it
+
+This is not a template. It's an observation about how good notes work. The structure should be invisible.
+
+---
+
+## What Makes a Note Work
+
+- The insight comes from lived experience. You can feel the difference between something observed and something constructed.
+- Stop before over-explaining. Restraint is the signature.
+- One concrete detail beats three abstract consequences.
+- The note earns its conclusion rather than stating it upfront.
+
+---
+
+## Process
+
+Before writing, ask:
+- What did you actually observe or notice? Get the specific moment or behaviour.
+- Is there a concrete image that makes the consequence real - not just "this is hard to reverse" but what does hard to reverse actually look like?
+- Is this note the same as one already written from a different angle? If so, merge or cut.
+
+**When given a video script or long-form content, do NOT summarize or compress it.** The note is not a preview, a teaser, or a condensed version of the video. Find the one observation buried in the material that would stand completely on its own if the video didn't exist. Write that observation as if the video was never made. If the note sounds like it's selling or pointing to something longer, start over.
+
+Then write the shortest version that lands the reframe. Cut anything that explains what the note already shows.
 
 ---
 
 ## Examples
 
-<example>
-Most engineers use AI agents one at a time. But the real leverage is running three agents that talk to each other — reviewer sends notes straight to the builder. I break this down in my new video.
-</example>
+<!-- CUSTOMIZE: Replace or supplement these with your own notes that performed well. -->
 
-<example>
-AI doesn't know if your architecture is wrong. It will build exactly what you ask for, fast, in the wrong direction. By the time you realise, customers depend on it and it's almost impossible to reverse. Slow down on the decisions that are hard to undo.
-</example>
+**Strong - compression, lived specificity:**
 
-<example>
-AI can write your code in seconds, but it can't easily fix a bad database schema once it's live in production. A bad foundational architecture is almost impossible to reverse. Spend your time getting the foundation right.
-</example>
+> After so much focus on prompt engineering in the past few years it's funny - most of the time I just use voice to talk to agents and never even think about prompts. Just explain clearly.
 
-<example>
-I've been using a project board to manage my AI agents and it's working really well. Instead of prompting in the terminal, I put tasks on a board. The agents pick up tickets and open PRs. I explain the setup in my new video.
-</example>
+One observation, no setup required, lands without explanation. Notice it doesn't conclude with a lesson - the reader draws it themselves.
 
-<example>
-Two agents editing the same file will overwrite each other. No merge conflicts, no warnings. Last write wins. The fix is an ownership model — each agent owns specific files. I walk through this in my latest video.
-</example>
+---
+
+**Strong - claim decomposition, reframe at the end:**
+
+> Writing code is maybe 40% of software engineering.
+> The other 60% is architecture, handling operations, failure modes, compliance, migrations, security, coordination across teams, and keeping it all running.
+> AI is great at the 40%. The 60% is why SaaS companies will still exist in the age of agents.
+
+The list earns the final sentence. Cut the list and the reframe has no foundation. Cut the reframe and it's just a breakdown with no point.
+
+---
+
+**Strong - contrast does the work:**
+
+> Vibe coding is genuinely amazing for prototypes and internal tools. More people can build software than ever. This is great.
+> But "I built a demo app in an afternoon" and "I built something serving millions of users across 40 countries with regulatory compliance" are not the same sentence.
+
+The concession ("This is great") makes the pivot land harder. Without it, the note sounds defensive.
+
+---
+
+**Weak - proverb restatement, no lived observation:**
+
+> It's better to move slowly in the right direction than quickly in the wrong direction.
+
+This is assembled wisdom, not observed reality. The reader has heard it before. Nothing here could only come from you.
+
+---
+
+## Format
+
+Plain text. Short paragraphs or a single crisp list if the content demands it.
+No headers. No em dashes. Under 150 words unless the idea genuinely needs more space.
 
 ---
 
 ## Output
 
-Present the notes to the user. Format each note with a blank line between them. Include character count for each note.
+Present the note ready to copy-paste, with a word count.
