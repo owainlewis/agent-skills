@@ -1,6 +1,6 @@
 ---
 name: clarify
-description: "Turn a vague, messy, or multi-part user ask into a clean, self-contained prompt that a fresh agent could execute without further questions. Interview the user one question at a time — walking down the decision tree, branching on each answer — until the prompt is tight, then output the final prompt as the deliverable. Trigger eagerly: any voice-dictated input, filler-heavy prose, underspecified references (\"the thing\", \"that script\"), multi-part requests, or any plan the user wants stress-tested. Skip only for short, crisp, single-purpose prompts where the deliverable is obvious."
+description: "Turn a vague, messy, or multi-part user ask into a clean, self-contained prompt that a fresh agent could execute without further questions. Interview the user one question at a time — walking down the decision tree, branching on each answer — until the prompt is tight, then output the final prompt as the deliverable. Trigger eagerly: any voice-dictated input, filler-heavy prose, underspecified references (\"the thing\", \"that script\"), multi-part requests, or any plan the user wants stress-tested. The skill itself can be skipped for trivial one-line requests where producing a prompt artifact would be pure ceremony — but once invoked, always produce the prompt, even if execution looks trivial."
 user-invocable: true
 argument-hint: "<the messy ask or plan to clarify>"
 ---
@@ -10,6 +10,8 @@ argument-hint: "<the messy ask or plan to clarify>"
 The user dictates fast and brings half-formed plans. Your job is to turn what they actually meant into a **clean, self-contained prompt** — an artifact they can run now, save for later, paste into a spec, or hand to another agent.
 
 This skill produces a prompt. It does not (by default) execute that prompt. The output is the deliverable.
+
+**Hard rule:** always emit the `Final prompt:` block before doing any work — even when the ask is already concrete enough that you could "just run it." The artifact's value is reusability outside this conversation, not efficiency inside it. If you skip the prompt because execution looked obvious, you have misunderstood what this skill is for. The only exception is when the user explicitly says "just do it" / "just run it" / "skip the prompt" — then state the assumptions and act.
 
 This is the most important skill in the toolkit. Most failed agent work comes from acting on an unclear ask. Slow down here so the rest goes fast.
 
