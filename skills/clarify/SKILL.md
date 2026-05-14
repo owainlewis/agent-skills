@@ -1,27 +1,36 @@
 ---
 name: clarify
-description: "Take a vague, messy, or multi-part user ask and turn it into an unambiguous spec before any work happens. Rewrite the ask if it's noisy, then interview the user one question at a time — walking down the decision tree, branching on each answer — until you could hand the final spec to a fresh agent and they'd build the right thing. Trigger eagerly: any voice-dictated input, filler-heavy prose, underspecified references (\"the thing\", \"that script\"), multi-part requests, or any plan the user wants stress-tested. Skip only for short, crisp, single-purpose prompts where the deliverable is obvious."
+description: "Turn a vague, messy, or multi-part user ask into a clean, self-contained prompt that a fresh agent could execute without further questions. Interview the user one question at a time — walking down the decision tree, branching on each answer — until the prompt is tight, then output the final prompt as the deliverable. Trigger eagerly: any voice-dictated input, filler-heavy prose, underspecified references (\"the thing\", \"that script\"), multi-part requests, or any plan the user wants stress-tested. Skip only for short, crisp, single-purpose prompts where the deliverable is obvious."
 user-invocable: true
 argument-hint: "<the messy ask or plan to clarify>"
 ---
 
 # Clarify
 
-The user dictates fast and brings half-formed plans. Your job is to turn what they actually meant into a spec tight enough that a fresh agent could implement it without further questions — and **not** to guess and ship the wrong thing.
+The user dictates fast and brings half-formed plans. Your job is to turn what they actually meant into a **clean, self-contained prompt** — an artifact they can run now, save for later, paste into a spec, or hand to another agent.
+
+This skill produces a prompt. It does not (by default) execute that prompt. The output is the deliverable.
 
 This is the most important skill in the toolkit. Most failed agent work comes from acting on an unclear ask. Slow down here so the rest goes fast.
 
 ## Workflow
 
-1. **Read the input.** Check the working directory and any obvious project conventions (`AGENTS.md`, `CLAUDE.md`, `README.md`, the file structure). Most ambiguity in a developer's ask is already answered by their codebase — never ask a question the code already answers.
+1. **Read the input and the codebase.** Check the working directory and any obvious project conventions (`AGENTS.md`, `CLAUDE.md`, `README.md`, the file structure). Most ambiguity in a developer's ask is already answered by their codebase — never ask a question the code already answers.
 
-2. **Rewrite the ask** (only if it's noisy enough to warrant it). Strip filler ("basically", "like", "obviously"), fix grammar, resolve obvious references. Preserve the user's intent exactly — do not expand scope or invent constraints. If the original is already crisp, skip this step. Show the cleaned version as a `Cleaned ask:` block, no commentary.
+2. **Optionally restate the raw ask cleanly.** If it's noisy enough to warrant it, show a `Cleaned ask:` block — filler stripped, references resolved, intent preserved exactly. Skip this if the original is already crisp.
 
 3. **Interview the user one question at a time.** Walk down the decision tree. For each unresolved decision, ask the question, recommend an answer with your reasoning, and wait. Each answer reshapes what comes next — the second question often only makes sense after the first is answered.
 
-4. **Keep going until the spec is tight.** After each answer, check: did this expose new ambiguity? If yes, ask again. Stop only when you could write a one-paragraph spec a fresh agent could implement without further questions, or when the user says "just do it".
+4. **Keep going until the prompt would be tight.** After each answer, check: did this expose new ambiguity? If yes, ask again. Stop only when you could write a self-contained prompt a fresh agent could execute without further questions, or when the user says "just write it".
 
-5. **Restate the final spec, then execute.** Brief one-paragraph summary of what you're about to build, then do it. No re-asking, no preamble.
+5. **Produce the final prompt as the deliverable.** Output it as a single, self-contained block under a `Final prompt:` heading. The prompt must read cold — no references to "what we discussed" or "the choices above". A fresh agent receiving only this prompt must have everything they need.
+
+6. **Ask what's next.** After the prompt, offer the three handoff options:
+   - **Execute it now** in this session.
+   - **Save it** to a file (suggest a path like `prompts/<slug>.md` or wherever the project keeps prompts).
+   - **Stop** — the user will use the prompt elsewhere.
+
+   Wait for the answer; don't pick a default.
 
 ## Rules for asking questions
 
@@ -49,14 +58,42 @@ Not worth asking:
 - Things the project's existing conventions already settle
 - Things the raw ask clearly answered, even if phrased messily
 
-## When the user says "just do it"
+## What the final prompt looks like
 
-Respect that immediately. State the assumptions you're making for the unresolved questions in one block, then execute. Don't keep grilling.
+The final prompt is **self-contained and imperative** — addressed to whoever runs it (you in this session, a future agent, a teammate). It should include:
 
-## What "tight enough to execute" looks like
+- **What to build, in one sentence.**
+- **Where it lives** (exact file path or directory).
+- **Inputs and outputs** (types, paths, naming conventions, overwrite behavior).
+- **Dependencies and conventions** (which tools, which env vars, which existing patterns to follow).
+- **Failure behavior** (what happens on bad input, network errors, missing files).
+- **Success criteria** (how the agent knows it's done).
+- **Anything out of scope**, if it's a likely temptation.
 
-Before you start work, you should be able to write something like:
+Example shape:
 
-> Building a Python script at `tools/auphonic/enhance.py` that takes one MP3 path as a CLI arg, uploads to the Auphonic Simple API using `AUPHONIC_API_KEY` from `.env`, polls until processing completes, and saves the result as `<basename>-enhanced.mp3` next to the input. No preset. Errors on missing file, surfaces API errors. Overwrites existing output silently.
+```
+Final prompt:
 
-If you can't write that paragraph yet, you have more questions to ask.
+Build a Python script at `tools/auphonic/enhance.py` that takes one MP3 file
+path as a required CLI argument and runs it through the Auphonic Simple API
+to produce an enhanced version.
+
+Auth: read AUPHONIC_API_KEY from the workspace .env file.
+Output: save the result next to the input as `<basename>-enhanced.mp3`.
+Overwrite silently if the output already exists.
+Failure: exit non-zero with a clear error message on missing input file,
+missing API key, or API error.
+Conventions: follow tools/youtube/youtube.py — uv inline-script header
+(PEP 723) with dependencies declared in the script.
+
+Out of scope: batch mode, presets, GUI. One file, one CLI invocation.
+
+Test it end-to-end against a real MP3 once built.
+```
+
+If you can't write a paragraph like that yet, you have more questions to ask.
+
+## When the user says "just do it" or "just write it"
+
+Respect that immediately. State the assumptions you're making for the unresolved questions in one block, then produce the final prompt with those assumptions baked in. Don't keep grilling.

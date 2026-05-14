@@ -7,7 +7,7 @@
 | Skill | What it does |
 |---|---|
 | `humanizer` | Rewrites text to remove AI tells (em dashes, "Most people don't…", significance inflation, signposting, etc.) and puts a voice back in. Runs a draft → audit → final pass. |
-| `clarify` | Turns a vague ask or half-formed plan into an unambiguous spec. Rewrites the ask if it's noisy, then interviews you one question at a time — with a recommended answer each time — until the intent is tight enough to execute. Stops you from shipping the wrong thing on a vague brief. |
+| `clarify` | Turns a vague ask or half-formed plan into a clean, self-contained prompt you can run anywhere. Interviews you one question at a time — with a recommended answer each time — then hands back the final prompt as the deliverable. Run it now, save it, or hand it to another agent. |
 | `explain-visually` | Builds a beautiful HTML explanation of a repo, spec, PR, architecture, or concept so a smart beginner can understand and retell it. |
 | `compress` | Compresses agent-facing instructions to the fewest words that preserve behavior, constraints, and clarity. |
 
