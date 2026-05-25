@@ -10,6 +10,7 @@
 | `clarify` | Turns a vague ask or half-formed plan into a clean, self-contained prompt you can run anywhere. Interviews you one question at a time — with a recommended answer each time — then hands back the final prompt as the deliverable. Run it now, save it, or hand it to another agent. |
 | `explain-visually` | Builds a beautiful HTML explanation of a repo, spec, PR, architecture, or concept so a smart beginner can understand and retell it. |
 | `compress` | Compresses agent-facing instructions to the fewest words that preserve behavior, constraints, and clarity. |
+| `teaching-card` | Turns rough expertise, lesson sections, YouTube ideas, or demos into compact teaching cards that make one specific idea click. |
 
 ## Install
 
@@ -34,6 +35,7 @@ In Claude Code:
 /clarify build a thing that does X and also Y, you know
 /explain-visually this repo
 /compress skills/compress/SKILL.md
+/teaching-card explain git worktrees for Claude Code users
 ```
 
 ## Add your own skills
