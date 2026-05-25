@@ -11,6 +11,7 @@
 | `explain-visually` | Builds a beautiful HTML explanation of a repo, spec, PR, architecture, or concept so a smart beginner can understand and retell it. |
 | `compress` | Compresses agent-facing instructions to the fewest words that preserve behavior, constraints, and clarity. |
 | `teaching-card` | Turns rough expertise, lesson sections, YouTube ideas, or demos into compact teaching cards that make one specific idea click. |
+| `teaching-doc` | Turns cards, rough notes, demos, or existing drafts into camera-readable Markdown lessons and YouTube companion docs with diagrams, prompts, code, and exercises. |
 
 ## Install
 
@@ -36,6 +37,7 @@ In Claude Code:
 /explain-visually this repo
 /compress skills/compress/SKILL.md
 /teaching-card explain git worktrees for Claude Code users
+/teaching-doc turn these notes into a YouTube companion doc about my multi-agent terminal setup
 ```
 
 ## Add your own skills
