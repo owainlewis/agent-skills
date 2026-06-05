@@ -8,6 +8,7 @@
 |---|---|
 | `humanizer` | Rewrites text to remove AI tells (em dashes, "Most people don't…", significance inflation, signposting, etc.) and puts a voice back in. Runs a draft → audit → final pass. |
 | `clarify` | Turns a vague ask or half-formed plan into a clean, self-contained prompt you can run anywhere. Interviews you one question at a time — with a recommended answer each time — then hands back the final prompt as the deliverable. Run it now, save it, or hand it to another agent. |
+| `prompt-enhance` | Takes a draft prompt or messy text and rewrites it into a refined, agent-ready prompt using prompt-engineering best practice — explicit scope, no contradictions, output contract, success criteria. One-shot: it improves the prompt, it doesn't interview you (that's `clarify`). |
 | `explain-visually` | Builds a beautiful HTML explanation of a repo, spec, PR, architecture, or concept so a smart beginner can understand and retell it. |
 | `compress` | Compresses agent-facing instructions to the fewest words that preserve behavior, constraints, and clarity. |
 | `teaching-card` | Turns rough expertise, lesson sections, YouTube ideas, or demos into compact teaching cards that make one specific idea click. |
@@ -34,6 +35,7 @@ In Claude Code:
 ```
 /humanizer paste or path the text you want rewritten
 /clarify build a thing that does X and also Y, you know
+/prompt-enhance make this a better prompt: <paste your rough draft>
 /explain-visually this repo
 /compress skills/compress/SKILL.md
 /teaching-card explain git worktrees for Claude Code users
