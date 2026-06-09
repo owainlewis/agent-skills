@@ -1,20 +1,42 @@
 ---
 name: backlog-manager
-description: "Manage a software backlog by classifying issues, applying simple risk/type/agent labels, improving issue quality, and syncing issue state with linked pull requests. Use for GitHub Issues or Linear backlog grooming before agent execution loops."
+description: "Act like a lightweight product manager for a software backlog: review the whole backlog loop, classify issues, improve issue quality, sync state with pull requests, and create evidence-backed follow-up tickets. Use when a GitHub/Linear backlog is the source of truth before agent execution loops."
 user-invocable: true
-argument-hint: "<dry-run|apply> <GitHub|Linear> backlog for <repo/team/project>"
+argument-hint: "<dry-run|apply> backlog for <GitHub repo|GitHub Project URL|Linear board|local path>"
 ---
 
 # Backlog Manager
 
 Keep a software backlog clean, classified, and ready for safe agent execution.
 
-The goal is backlog management, not implementation. This skill labels issues, improves issue
-quality, creates evidence-backed maintenance tickets when asked, and syncs issue state with linked
-pull requests.
+Think of this skill as a lightweight product manager for the backlog. The goal is backlog review
+and project-state hygiene, not implementation. It labels issues, improves issue quality, identifies
+missing follow-up tickets, creates evidence-backed maintenance tickets when allowed, and syncs issue
+state with linked pull requests.
 
 Default to `dry-run`. Only mutate GitHub, Linear, or another tracker when the user explicitly asks
 for `apply`.
+
+## Backlog Source Contract
+
+Use exactly one backlog source of truth per run. Do not merge competing local and remote backlogs.
+
+Supported sources:
+- **GitHub Issues** for a named repo, using an installed and authenticated `gh` CLI.
+- **GitHub Projects** when the user provides the project URL/path and `gh` can access it.
+- **Linear** when the user provides the team/project/board path and a Linear connector is available.
+- **Explicit local backlog path** only when the user provides that path and says it is the source of truth.
+
+Default to GitHub Issues when the current repository has a GitHub remote and `gh` is installed and
+authenticated. If `gh` is missing or unauthenticated, stop and report the prerequisite instead of
+falling back to local planning files.
+
+If the user does not name a tracker and no GitHub Issues source can be inferred, ask for the backlog
+path/URL. Examples: a Linear board, a GitHub Project, a GitHub repo, or an explicit local backlog file.
+
+Local roadmap files, ticket files, planning docs, and README sections are context only unless the user
+explicitly says they are the backlog source. Treat divergence between those files and the tracker as
+quality drift to report or fix, not as a second backlog to reconcile by default.
 
 ## Labels
 
@@ -153,9 +175,9 @@ Human needed:
 
 ## Workflow
 
-Think of the backlog manager as a repeatable operating loop, not a one-shot labelling tool.
+Think of the backlog manager as a repeatable product-management operating loop, not a one-shot labelling tool.
 
-Use the requested mode when the user names one. For a plain backlog request, run only context loading, tracker detection, label checks, issue classification, PR-state sync, verification when applicable, and reporting. Run the repo sweep and candidate-issue steps only when the user explicitly asks for a sweep, the run is scheduled with sweep enabled, or project policy says the backlog manager should keep quality drift under review. Clearly state which steps were dry-run versus applied.
+Each run should review the whole backlog loop against the selected source of truth: load context, resolve the backlog source, check labels, classify open issues, sync issue state with pull requests, sweep for evidence-backed quality drift, create or propose missing tickets according to the run mode, verify tracker state, and report. Clearly state which steps were dry-run versus applied.
 
 ### Step 1 — Load Context
 
@@ -165,20 +187,25 @@ Read repository or workspace instructions first:
 - README files
 - contribution/development docs
 - issue templates
-- local roadmap/backlog docs when they exist
+- local roadmap/backlog docs only as context, unless the user explicitly provides one as the backlog source
 
 Use this context to classify risk and write issue assessments. Do not make up project policy.
 
-If a repo has both tracker issues and local backlog files, identify the source of truth. Prefer the tracker unless repo docs explicitly say otherwise. Treat secondary docs as possible drift sources, not authoritative state.
+If repo docs disagree with the selected backlog source, treat that as quality drift. Do not let local roadmap or ticket files override GitHub Issues, GitHub Projects, or Linear unless the user explicitly made the local path authoritative.
 
-### Step 2 — Detect Tracker
+### Step 2 — Resolve Backlog Source
 
-Use the tracker the user names.
+Use the backlog source the user names.
 
 Otherwise:
-- Use GitHub when `gh` is available and the current directory has a GitHub remote.
-- Use Linear when the user asks for Linear and a Linear connector/tool is available.
-- If no tracker can be accessed, stop with the exact missing setup.
+- Use GitHub Issues only when `gh` is installed, authenticated, and the current directory has a GitHub remote.
+- Use GitHub Projects only when the user provides a project URL/path and `gh` can access it.
+- Use Linear only when the user provides a Linear team/project/board path and a Linear connector/tool is available.
+- Use a local backlog file only when the user explicitly provides the file path and says it is the source of truth.
+- If no backlog source can be resolved, stop and ask for the backlog path/URL or the missing setup.
+
+Do not infer a Linear board, GitHub Project, or local backlog from vague references. Divergent branches
+or planning docs are context for the product-manager review, not independent backlog sources.
 
 ### Step 3 — Ensure Labels Exist
 
@@ -229,7 +256,7 @@ Do not close an issue unless the linked PR clearly resolves it.
 
 ### Step 6 — Sweep The Repo For Quality Drift
 
-Run this step when the user asks for a sweep, when the workflow is scheduled, or when the project policy says the backlog manager should keep quality high.
+Run this step on every full backlog review. Keep it evidence-driven and proportional: the goal is to catch product/project drift that should become a ticket or a report item, not to perform an unbounded code audit.
 
 The sweep is evidence-driven. Look for concrete problems, not speculative improvements:
 - stale docs referencing closed/open issue state incorrectly
@@ -363,9 +390,10 @@ When Linear and GitHub are connected, use linked PR state to update Linear issue
 
 ```text
 $backlog-manager dry-run GitHub backlog for this repo
-$backlog-manager dry-run sweep GitHub repo owainlewis/neo
-$backlog-manager apply classify+sync GitHub repo owainlewis/neo
-$backlog-manager dry-run Linear backlog for the Agentic Engineer project
+$backlog-manager apply full backlog loop for GitHub repo owainlewis/neo
+$backlog-manager dry-run backlog for GitHub Project https://github.com/orgs/acme/projects/7
+$backlog-manager dry-run Linear backlog for team ENG project Agentic Engineer
+$backlog-manager dry-run backlog from ./BACKLOG.md as the source of truth
 ```
 
 ## Safety Rules
