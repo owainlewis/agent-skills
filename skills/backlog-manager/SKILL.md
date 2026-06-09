@@ -1,18 +1,21 @@
 ---
 name: backlog-manager
-description: "Act like a lightweight product manager for a software backlog: review the whole backlog loop, classify issues, improve issue quality, sync state with pull requests, and create evidence-backed follow-up tickets. Use when a GitHub/Linear backlog is the source of truth before agent execution loops."
+description: "Manage an engineering backlog for humans and AI agents: review the whole loop, classify issues, improve issue quality, sync pull-request state, and label safe tickets so AI agents know what work they can pick up. Use when GitHub Issues, GitHub Projects, Linear, or an explicit local backlog path is the source of truth."
 user-invocable: true
 argument-hint: "<dry-run|apply> backlog for <GitHub repo|GitHub Project URL|Linear board|local path>"
 ---
 
 # Backlog Manager
 
-Keep a software backlog clean, classified, and ready for safe agent execution.
+Manage an engineering backlog for humans and AI agents.
 
-Think of this skill as a lightweight product manager for the backlog. The goal is backlog review
-and project-state hygiene, not implementation. It labels issues, improves issue quality, identifies
-missing follow-up tickets, creates evidence-backed maintenance tickets when allowed, and syncs issue
-state with linked pull requests.
+Think of this skill as a lightweight product manager for the backlog. The goal is to keep engineering
+work clear, sequenced, classified, and safe to route to either humans or AI agents. A core job is to
+label safe, well-scoped tickets so AI agents know which work they are allowed to pick up, while
+marking ambiguous, risky, or judgement-heavy work for humans. This is backlog review and project-state
+hygiene, not implementation. It labels issues, improves issue quality, identifies missing follow-up
+tickets, creates evidence-backed maintenance tickets when allowed, and syncs issue state with linked
+pull requests.
 
 Default to `dry-run`. Only mutate GitHub, Linear, or another tracker when the user explicitly asks
 for `apply`.
@@ -64,7 +67,10 @@ unless the user explicitly asks to normalize or remove legacy labels.
 
 ### Agent Routing
 
-- `agent:ready` - Permission for an execution loop to pick up the issue.
+These labels are the machine-readable pickup contract for AI coding agents. The automation is not
+just describing the backlog; it is marking which tickets an agent execution loop may safely select.
+
+- `agent:ready` - Permission for an AI agent execution loop to pick up the issue.
 - `agent:blocked` - The agent cannot safely classify or progress the issue.
 - `agent:complete` - Agent work produced the needed PR or the issue has been resolved.
 
@@ -123,7 +129,7 @@ Add `needs:human` to high-risk issues unless they are already clearly human-owne
 
 ## Agent Readiness
 
-Only add `agent:ready` when all are true:
+`agent:ready` is the handoff signal from backlog management to AI execution. Only add it when all are true:
 - risk is `risk:low`
 - no human decision is needed
 - the issue is small enough for one pull request
@@ -177,7 +183,7 @@ Human needed:
 
 Think of the backlog manager as a repeatable product-management operating loop, not a one-shot labelling tool.
 
-Each run should review the whole backlog loop against the selected source of truth: load context, resolve the backlog source, check labels, classify open issues, sync issue state with pull requests, sweep for evidence-backed quality drift, create or propose missing tickets according to the run mode, verify tracker state, and report. Clearly state which steps were dry-run versus applied.
+Each run should review the whole backlog loop against the selected source of truth: load context, resolve the backlog source, check labels, classify open issues for human/agent routing, sync issue state with pull requests, sweep for evidence-backed quality drift, create or propose missing tickets according to the run mode, verify tracker state, and report. Clearly state which steps were dry-run versus applied.
 
 ### Step 1 — Load Context
 
@@ -232,7 +238,7 @@ For each open issue:
 4. Add or update the Agent Assessment.
 5. Avoid changing labels when confidence is low. Use `needs:human` and explain why.
 
-Do not mark medium-risk or high-risk issues `agent:ready` unless the user explicitly asks for that policy change.
+Do not mark medium-risk or high-risk issues `agent:ready` unless the user explicitly asks for that policy change. Agents should be able to use `agent:ready` as their default pickup queue without re-litigating product risk.
 
 ### Step 5 — Sync Issue State With Pull Requests
 
