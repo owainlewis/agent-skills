@@ -1,18 +1,19 @@
 ---
 name: backlog-manager
-description: "Act like a lightweight product manager for a software backlog: review the whole backlog loop, classify issues, improve issue quality, sync state with pull requests, and create evidence-backed follow-up tickets. Use when a GitHub/Linear backlog is the source of truth before agent execution loops."
+description: "Manage an engineering backlog for humans and AI agents: review the whole loop, classify issues, improve issue quality, sync pull-request state, and create evidence-backed follow-up tickets. Use when GitHub Issues, GitHub Projects, Linear, or an explicit local backlog path is the source of truth."
 user-invocable: true
 argument-hint: "<dry-run|apply> backlog for <GitHub repo|GitHub Project URL|Linear board|local path>"
 ---
 
 # Backlog Manager
 
-Keep a software backlog clean, classified, and ready for safe agent execution.
+Manage an engineering backlog for humans and AI agents.
 
-Think of this skill as a lightweight product manager for the backlog. The goal is backlog review
-and project-state hygiene, not implementation. It labels issues, improves issue quality, identifies
-missing follow-up tickets, creates evidence-backed maintenance tickets when allowed, and syncs issue
-state with linked pull requests.
+Think of this skill as a lightweight product manager for the backlog. The goal is to keep engineering
+work clear, sequenced, classified, and safe to route to either humans or AI agents. This is backlog
+review and project-state hygiene, not implementation. It labels issues, improves issue quality,
+identifies missing follow-up tickets, creates evidence-backed maintenance tickets when allowed, and
+syncs issue state with linked pull requests.
 
 Default to `dry-run`. Only mutate GitHub, Linear, or another tracker when the user explicitly asks
 for `apply`.
@@ -177,7 +178,7 @@ Human needed:
 
 Think of the backlog manager as a repeatable product-management operating loop, not a one-shot labelling tool.
 
-Each run should review the whole backlog loop against the selected source of truth: load context, resolve the backlog source, check labels, classify open issues, sync issue state with pull requests, sweep for evidence-backed quality drift, create or propose missing tickets according to the run mode, verify tracker state, and report. Clearly state which steps were dry-run versus applied.
+Each run should review the whole backlog loop against the selected source of truth: load context, resolve the backlog source, check labels, classify open issues for human/agent routing, sync issue state with pull requests, sweep for evidence-backed quality drift, create or propose missing tickets according to the run mode, verify tracker state, and report. Clearly state which steps were dry-run versus applied.
 
 ### Step 1 — Load Context
 
