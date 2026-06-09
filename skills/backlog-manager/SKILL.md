@@ -22,20 +22,18 @@ for `apply`.
 
 ## Jobs To Be Done
 
-This is one umbrella skill: **Engineering Backlog Manager**. Keep the recurring daily loop in one
-skill because the jobs share the same source of truth, labels, state model, and report. Split into
-separate skills only when a job needs a different toolchain or safety policy.
+This is one umbrella skill: **Engineering Backlog Manager**. Keep the recurring loop in one skill
+because the jobs share the same source of truth, labels, state model, and report. Split into separate
+skills only when a job needs a different toolchain or safety policy.
 
-The daily cron job should run the whole loop:
+Run the whole workflow by default rather than asking the user to orchestrate several tiny modes. The
+workflow has three simple phases:
 
-1. **Review the backlog** — inspect open issues, current labels, stale state, linked PRs, and recent tracker changes.
-2. **Label tickets for human/agent routing** — mark safe, well-scoped work as `agent:ready` so AI agents know what they may pick up; route ambiguous or risky work to humans with `needs:human`.
-3. **Find concrete repo drift and create issues** — look for evidence-backed codebase/docs/CI problems and create or propose tickets according to the run mode.
-4. **Sync ticket state** — move or label tickets based on linked PR evidence, active work, completed work, blocked work, or missing human decisions.
-5. **Close stale/completed tickets** — close only with clear evidence, usually a merged PR or verified obsolete request, and leave an audit comment.
-6. **Clean up unneeded branches** — identify branches already merged, abandoned, or tied to closed work. Report candidates by default. Delete remote branches only when the run has explicit branch-cleanup approval and the branch matches the branch-cleanup safety rules.
-7. **Report** — summarize updates made, candidates skipped, blockers, and the next human decision needed.
+1. **Triage the backlog** — inspect open issues, current labels, stale state, linked PRs, and recent tracker changes.
+2. **Prepare the queue** — classify issues by risk/type, mark safe work as `agent:ready`, route judgement-heavy work to `needs:human`, and add/update Agent Assessments.
+3. **Maintain and report** — sync clearly completed issues from PR evidence, propose or create evidence-backed maintenance tickets, report branch cleanup candidates, verify the result, and summarize the next human decision.
 
+The skill is not a coding agent. Its main output is a clean backlog and a safe queue that a separate execution loop can consume.
 
 ## Backlog Source Contract
 
@@ -82,22 +80,32 @@ unless the user explicitly asks to normalize or remove legacy labels.
 - `type:chore` - Maintenance such as dependency upgrades, build scripts, CI config, formatting,
   package metadata, repo cleanup, or tool configuration.
 
-### Agent Routing
+### Routing
 
-These labels are the machine-readable pickup contract for AI coding agents. The automation is not
-just describing the backlog; it is marking which tickets an agent execution loop may safely select.
+These labels are the machine-readable handoff contract. Keep routing labels deliberately small:
 
 - `agent:ready` - Permission for an AI agent execution loop to pick up the issue.
-- `agent:blocked` - The agent cannot safely classify or progress the issue.
-- `agent:complete` - Agent work produced the needed PR or the issue has been resolved.
-
-### Human Input
-
 - `needs:human` - A human decision, clarification, or judgement call is required.
 
-## Risk Rules
+Do not add extra routing labels by default. Use GitHub issue/PR state for completion and review state
+instead of labels like `agent:complete` or `agent:blocked`. If an issue cannot be safely progressed,
+remove `agent:ready` and add `needs:human` with a specific question.
 
-Use `risk:low` for small, bounded changes with clear verification and low blast radius.
+## Risk And Routing Rules
+
+Use a simple contract. The execution loop should be able to query `agent:ready` and trust that the
+issue is safe to attempt without re-litigating product risk.
+
+### `agent:ready`
+
+Only add `agent:ready` when all are true:
+- risk is `risk:low`
+- scope is clear
+- the work is small enough for one pull request
+- expected output is clear
+- likely verification is known
+- no product, UX, architecture, security, data, billing, auth, or deployment judgement is required
+- the issue is not already linked to active work
 
 Good low-risk examples:
 - docs updates
@@ -109,63 +117,27 @@ Good low-risk examples:
 - simple CI command/config drift
 - patch dependency upgrades with passing tests
 
-Only mark an issue `risk:low` when:
-- scope is clear
-- acceptance criteria can be inferred or written plainly
-- likely change is small
-- verification is available
-- no product, security, data, billing, auth, or deployment decision is required
+### `needs:human`
 
-Use `risk:medium` when the change may be agent-suitable but needs more confidence, stronger tests,
-or human review.
-
-Medium-risk examples:
-- user-facing bug fixes
-- behavior changes with clear expected output
-- multi-file refactors
-- minor or major dependency upgrades
-- framework/tooling migrations
-- changes touching build or runtime behavior
-
-Do not mark medium-risk issues `agent:ready` unless the user explicitly asks this workflow to
-include medium-risk work.
-
-Use `risk:high` when unattended execution could create meaningful product, security, operational,
-or data risk.
-
-High-risk examples:
-- auth, permissions, secrets, or security-sensitive code
-- billing, payments, subscriptions, or pricing
-- data migrations or destructive data changes
-- production deployment logic or infrastructure that can affect live systems
-- vague feature requests
-- broad architecture changes
-- anything requiring product judgement
-
-Add `needs:human` to high-risk issues unless they are already clearly human-owned.
-
-## Agent Readiness
-
-`agent:ready` is the handoff signal from backlog management to AI execution. Only add it when all are true:
-- risk is `risk:low`
-- no human decision is needed
-- the issue is small enough for one pull request
-- the expected output is clear
-- the likely verification step is known
-- the issue is not already linked to an active PR
-
-Add `needs:human` when:
+Add `needs:human` when any are true:
 - requirements are ambiguous
 - expected behavior is unclear
 - a reproduction is missing for a real bug
-- the issue asks for a product, UX, architecture, security, data, or deployment decision
-- the issue looks too large for one pull request
-
-Add `agent:blocked` when:
-- the tracker cannot be updated safely
-- labels cannot be applied
-- the issue cannot be classified with confidence
+- the issue is too large for one pull request
+- the issue needs product, UX, architecture, security, data, billing, auth, or deployment judgement
+- the agent cannot classify the issue with confidence
 - a previous agent attempt failed and the next step is unclear
+
+### Risk levels
+
+Use `risk:low` for small, bounded changes with clear verification and low blast radius.
+
+Use `risk:medium` when the change may be agent-suitable later, but needs more confidence, stronger
+tests, or close human review. Do not mark medium-risk issues `agent:ready` unless the user explicitly
+asks this workflow to include medium-risk work.
+
+Use `risk:high` when unattended execution could create meaningful product, security, operational, or
+data risk. Add `needs:human` to high-risk issues unless they are already clearly human-owned.
 
 ## Agent Assessment
 
@@ -200,7 +172,7 @@ Human needed:
 
 Think of the backlog manager as a repeatable product-management operating loop, not a one-shot labelling tool.
 
-Each run should review the whole backlog loop against the selected source of truth: load context, resolve the backlog source, check labels, classify open issues for human/agent routing, sync issue state with pull requests, sweep for evidence-backed quality drift, create or propose missing tickets according to the run mode, identify and safely clean up unneeded branches, verify tracker state, and report. Clearly state which steps were dry-run versus applied.
+Each run should review the whole backlog loop against the selected source of truth: load context, resolve the backlog source, check labels, classify open issues for human/agent routing, sync clearly completed issues from pull-request evidence, sweep for evidence-backed quality drift, create or propose missing tickets according to the run mode, report branch cleanup candidates, verify tracker state, and report. Clearly state which steps were dry-run versus applied.
 
 ### Step 1 — Load Context
 
@@ -251,9 +223,9 @@ Fetch open issues with title, body, labels, comments, status/project fields when
 For each open issue:
 1. Assign exactly one managed `risk:*` label.
 2. Assign exactly one managed `type:*` label.
-3. Decide whether `agent:ready`, `agent:blocked`, `agent:complete`, or `needs:human` should change.
+3. Decide whether `agent:ready` or `needs:human` should change.
 4. Add or update the Agent Assessment.
-5. Avoid changing labels when confidence is low. Use `needs:human` and explain why.
+5. Avoid marking an issue `agent:ready` when confidence is low. Use `needs:human` and explain why.
 
 Do not mark medium-risk or high-risk issues `agent:ready` unless the user explicitly asks for that policy change. Agents should be able to use `agent:ready` as their default pickup queue without re-litigating product risk.
 
@@ -263,19 +235,19 @@ Keep issue state aligned with linked PRs.
 
 If a linked PR is open:
 - move the issue to the tracker review state when status/project fields are available
-- do not add `agent:complete` unless the workflow defines PR-open as complete
+- remove `agent:ready` if the work is already being attempted
 
 If a linked PR is merged:
 - remove `agent:ready`
-- add `agent:complete`
 - close the issue when the PR clearly resolves it
 
 If a linked PR is closed without merge:
-- remove `agent:complete`
-- add `agent:blocked`
+- remove `agent:ready`
+- add `needs:human` when the next step is unclear
 - comment with the known reason when available
 
-Do not close an issue unless the linked PR clearly resolves it.
+Do not close an issue unless the linked PR clearly resolves it. Use GitHub issue/PR state for
+completion instead of adding a separate completion label.
 
 ### Step 6 — Sweep The Repo For Quality Drift
 
@@ -329,30 +301,17 @@ Every agent-created issue must include:
 - a small suggested fix
 - an Agent Assessment
 
-### Step 8 — Clean Up Unneeded Branches
+### Step 8 — Report Unneeded Branches
 
-Treat branch cleanup as part of backlog hygiene, but apply a stricter safety bar than labels.
+Treat branch cleanup as backlog hygiene, but do not delete branches from this skill.
 
 Inspect remote branches and PR state. Good cleanup candidates are branches that are:
 - already merged into the default branch
 - linked to closed issues or merged/closed PRs with no remaining work
 - stale automation branches whose PR was closed without merge and has no active follow-up
 
-Never delete:
-- the default branch
-- protected/release branches
-- branches with an open PR
-- branches with commits not merged into the default branch, unless the user explicitly approves
-- branches that look human-owned or unclear
-
-In `dry-run`, list branch cleanup candidates with evidence and do not delete anything.
-
-In `apply`, branch cleanup is still report-only unless the user or cron policy explicitly approves
-remote branch deletion for this run. Tracker `apply` does not imply permission to mutate git refs.
-
-When branch cleanup is explicitly approved, delete only remote branches that are clearly merged or tied
-to completed/closed work. If there is doubt, report the candidate under `Needs human` instead of
-deleting it.
+Never delete branches in this workflow. Report cleanup candidates with evidence and leave deletion to a
+separate explicit branch-cleanup workflow or a human.
 
 ### Step 9 — Verify Apply Runs
 
@@ -362,7 +321,7 @@ After an `apply` run, verify the tracker state before reporting:
 - `agent:ready` only appears with `risk:low`.
 - Every `risk:high` issue has `needs:human` unless there is a clear reason not to.
 - Every classified open issue has an `## Agent Assessment` block in the issue body or an equivalent comment.
-- Any stale completed issue closed during sync still keeps its final risk/type/agent labels and assessment for auditability.
+- Any stale completed issue closed during sync still keeps its final risk/type labels and assessment for auditability.
 - Any issues created by the sweep are deduplicated and include evidence.
 
 For GitHub, a small verification script using `gh issue list --json number,title,labels,body` is safer than eyeballing the web UI.
@@ -372,7 +331,7 @@ For GitHub, a small verification script using `gh issue list --json number,title
 End with a compact summary:
 - tracker used
 - mode used
-- steps run: classify, sync, sweep, create candidates/issues, branch cleanup, verify
+- steps run: classify, sync, sweep, create candidates/issues, branch cleanup report, verify
 - number of issues inspected
 - labels created or missing
 - issues changed
@@ -380,13 +339,13 @@ End with a compact summary:
 - issues marked `needs:human`
 - issues closed or synced from PR state
 - sweep candidates found or created
-- branch cleanup candidates found, reported, or deleted with explicit approval
+- branch cleanup candidates found and reported
 - verification result
 - blockers and recommended next action
 
 ## Scheduled Runs / Cron
 
-For scheduled backlog management, run the full engineering-backlog loop every time so the repo stays in a healthy state: review backlog, label tickets, find repo drift, create/propose missing issues, sync ticket state, close stale/completed tickets, identify safe branch cleanup, verify, and report.
+For scheduled backlog management, run the full engineering-backlog loop every time so the repo stays in a healthy state: review backlog, label tickets, find repo drift, create/propose missing issues, sync ticket state, close stale/completed tickets, report safe branch-cleanup candidates, verify, and report.
 
 Keep scheduled mutation policy explicit. A cron may run in `dry-run` mode, or in conservative `apply` mode once the user has approved exactly which mutations are allowed for the repo.
 
@@ -395,11 +354,10 @@ Cron prompts must be self-contained. Include:
 - source-of-truth rule
 - allowed mutation policy
 - whether to create issues or only propose candidates
-- whether safe merged-branch deletion is explicitly approved for this run or only reported
 - verification requirements
 - delivery target
 
-Default scheduled behaviour should not merge PRs, publish releases, change secrets, spend money, delete unclear/human-owned branches, or make high-risk changes.
+Default scheduled behaviour should not merge PRs, publish releases, change secrets, spend money, delete branches, or make high-risk changes.
 
 ## GitHub Adapter
 
@@ -427,7 +385,7 @@ Use Linear when the user asks for Linear and the connector/tool is available.
 Map labels directly:
 - `risk:*`
 - `type:*`
-- `agent:*`
+- `agent:ready`
 - `needs:human`
 
 Map issue status to the workspace's existing workflow states. Do not create new status states unless
@@ -453,6 +411,7 @@ $backlog-manager dry-run backlog from ./BACKLOG.md as the source of truth
 - Do not auto-close issues without clear linked merged PR evidence.
 - Do not create speculative work.
 - Do not use the backlog manager to implement code.
+- Do not delete branches from this skill; only report cleanup candidates.
 - When unsure, classify conservatively and ask for human input.
 
 ## Quality Bar
@@ -463,4 +422,5 @@ $backlog-manager dry-run backlog from ./BACKLOG.md as the source of truth
 - [ ] Human decisions are routed through `needs:human`, not extra labels.
 - [ ] Issue reasoning lives in Agent Assessment, not label sprawl.
 - [ ] Merged PR cleanup only happens with clear evidence.
+- [ ] Branch cleanup is report-only.
 - [ ] Final report is concise and actionable.
