@@ -153,7 +153,11 @@ Human needed:
 
 ## Workflow
 
-### 1. Load Context
+Think of the backlog manager as a repeatable operating loop, not a one-shot labelling tool.
+
+Use the requested mode when the user names one. Otherwise run the steps in order and clearly state which steps were dry-run versus applied.
+
+### Step 1 — Load Context
 
 Read repository or workspace instructions first:
 - `AGENTS.md`
@@ -161,10 +165,13 @@ Read repository or workspace instructions first:
 - README files
 - contribution/development docs
 - issue templates
+- local roadmap/backlog docs when they exist
 
 Use this context to classify risk and write issue assessments. Do not make up project policy.
 
-### 2. Detect Tracker
+If a repo has both tracker issues and local backlog files, identify the source of truth. Prefer the tracker unless repo docs explicitly say otherwise. Treat secondary docs as possible drift sources, not authoritative state.
+
+### Step 2 — Detect Tracker
 
 Use the tracker the user names.
 
@@ -173,7 +180,7 @@ Otherwise:
 - Use Linear when the user asks for Linear and a Linear connector/tool is available.
 - If no tracker can be accessed, stop with the exact missing setup.
 
-### 3. Ensure Labels Exist
+### Step 3 — Ensure Labels Exist
 
 In `dry-run`, report missing labels.
 
@@ -187,14 +194,9 @@ Recommended GitHub colors:
 - `agent:*` - `1D76DB`
 - `needs:human` - `D93F0B`
 
-### 4. Fetch Open Issues
+### Step 4 — Classify Open Issues
 
-Fetch open issues with title, body, labels, comments, status/project fields when available, and
-linked pull requests when the tracker exposes them.
-
-For GitHub, prefer `gh`. Use GraphQL when linked PR state matters.
-
-### 5. Classify And Tidy Issues
+Fetch open issues with title, body, labels, comments, status/project fields when available, and linked pull requests when the tracker exposes them.
 
 For each open issue:
 1. Assign exactly one managed `risk:*` label.
@@ -203,57 +205,9 @@ For each open issue:
 4. Add or update the Agent Assessment.
 5. Avoid changing labels when confidence is low. Use `needs:human` and explain why.
 
-### 6. Create Obvious Maintenance Issues
+Do not mark medium-risk or high-risk issues `agent:ready` unless the user explicitly asks for that policy change.
 
-Only scan the repo and create new issues when the user asks for repo scanning.
-
-Create a new issue only when there is concrete evidence of a real problem. If the concern is
-plausible but not proven, mention it in the run report instead of creating a ticket.
-
-Good candidates:
-- broken docs links
-- stale commands in README or setup docs
-- TODO comments that describe clear work
-- missing tests around small utility code
-- simple CI/build script drift
-- dependency upgrades that are clearly routine
-
-Bad candidates:
-- vague improvement ideas
-- speculative refactors
-- architecture rewrites
-- product ideas
-- anything requiring business, UX, security, data, or deployment judgement
-
-Deduplicate before creating an issue.
-
-Every agent-created issue must include:
-- evidence, including file paths, commands, config keys, or code references
-- why the problem matters
-- a small suggested fix
-- an Agent Assessment
-
-Use this shape:
-
-```md
-## Evidence
-
-- File: <path>
-- Current state: <specific text, command, config, or code reference>
-- Problem: <why this is wrong, stale, broken, or risky>
-
-## Suggested fix
-
-<small fix another agent or human can review>
-
-## Agent Assessment
-
-Risk: low | medium | high
-Type: bug | feature | docs | test | refactor | chore
-Agent-ready: yes | no
-```
-
-### 7. Sync Issue State With Pull Requests
+### Step 5 — Sync Issue State With Pull Requests
 
 Keep issue state aligned with linked PRs.
 
@@ -273,18 +227,103 @@ If a linked PR is closed without merge:
 
 Do not close an issue unless the linked PR clearly resolves it.
 
-### 8. Report
+### Step 6 — Sweep The Repo For Quality Drift
+
+Run this step when the user asks for a sweep, when the workflow is scheduled, or when the project policy says the backlog manager should keep quality high.
+
+The sweep is evidence-driven. Look for concrete problems, not speculative improvements:
+- stale docs referencing closed/open issue state incorrectly
+- local backlog or roadmap docs that contradict tracker state
+- docs saying something is not implemented when code exists, or saying it exists when code is missing
+- broken local Markdown links
+- README/setup commands that do not exist in `justfile`, package scripts, CLI help, Makefile, or docs
+- generated docs drift when the repo has a documented check command
+- TODO/FIXME/HACK comments that describe clear, bounded work
+- skipped tests or disabled checks that look accidental
+- recent failed CI/check runs on the default branch
+- simple build/lint/config drift with a clear verification command
+
+Do not create issues for:
+- vague improvement ideas
+- speculative refactors
+- architecture rewrites
+- product ideas
+- anything requiring business, UX, security, data, billing, auth, or deployment judgement
+
+Deduplicate against existing open and recently closed issues before proposing or creating anything.
+
+### Step 7 — Create Candidate Issues
+
+In `dry-run`, do not create issues. Output candidates in this shape:
+
+```md
+Candidate issue: <title>
+Evidence:
+- <file, command, PR, issue, or code reference>
+Why it matters:
+<short explanation>
+Suggested fix:
+<small reviewable fix>
+Risk: low | medium | high
+Type: bug | feature | docs | test | refactor | chore
+Agent-ready: yes | no
+Confidence: high | medium | low
+Create issue: yes | no
+```
+
+In `apply`, create a new issue only when there is concrete evidence of a real problem and confidence is high. If the concern is plausible but not proven, mention it in the run report instead of creating a ticket.
+
+Every agent-created issue must include:
+- evidence, including file paths, commands, config keys, PRs, issue links, or code references
+- why the problem matters
+- a small suggested fix
+- an Agent Assessment
+
+### Step 8 — Verify Apply Runs
+
+After an `apply` run, verify the tracker state before reporting:
+- Every remaining open issue has exactly one managed `risk:*` label.
+- Every remaining open issue has exactly one managed `type:*` label.
+- `agent:ready` only appears with `risk:low`.
+- Every `risk:high` issue has `needs:human` unless there is a clear reason not to.
+- Every classified open issue has an `## Agent Assessment` block in the issue body or an equivalent comment.
+- Any stale completed issue closed during sync still keeps its final risk/type/agent labels and assessment for auditability.
+- Any issues created by the sweep are deduplicated and include evidence.
+
+For GitHub, a small verification script using `gh issue list --json number,title,labels,body` is safer than eyeballing the web UI.
+
+### Step 9 — Report
 
 End with a compact summary:
 - tracker used
 - mode used
+- steps run: classify, sync, sweep, create candidates/issues, verify
 - number of issues inspected
 - labels created or missing
 - issues changed
 - issues marked `agent:ready`
 - issues marked `needs:human`
 - issues closed or synced from PR state
+- sweep candidates found or created
+- verification result
 - blockers and recommended next action
+
+## Scheduled Runs / Cron
+
+For scheduled backlog management, prefer a conservative two-stage policy:
+
+1. Recurring `dry-run sweep + classify + sync report` posts findings on a schedule.
+2. `apply` runs only for safe, explicitly approved actions, or after the user has approved an automation policy for the repo.
+
+Cron prompts must be self-contained. Include:
+- repo/tracker name
+- source-of-truth rule
+- allowed mutation policy
+- whether to create issues or only propose candidates
+- verification requirements
+- delivery target
+
+Default scheduled behaviour should not merge PRs, publish releases, change secrets, spend money, or make high-risk changes.
 
 ## GitHub Adapter
 
@@ -324,7 +363,8 @@ When Linear and GitHub are connected, use linked PR state to update Linear issue
 
 ```text
 $backlog-manager dry-run GitHub backlog for this repo
-$backlog-manager apply GitHub backlog labels and issue assessments for owainlewis/neo
+$backlog-manager dry-run sweep GitHub repo owainlewis/neo
+$backlog-manager apply classify+sync GitHub repo owainlewis/neo
 $backlog-manager dry-run Linear backlog for the Agentic Engineer project
 ```
 
