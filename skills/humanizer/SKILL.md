@@ -7,8 +7,6 @@ description: "Rewrite text to remove AI tells. Use when editing or reviewing wri
 
 Rewrite text so it sounds like a person wrote it, not an LLM.
 
-Two jobs in one. Remove the AI tells, then put a pulse back in. A clean rewrite with no voice is still obviously AI — just smoother AI.
-
 ## Process
 
 1. Read the input. If a voice sample is provided (the user's own writing, inline or via file path), study it first: sentence length, word choice, how they open, how they transition, recurring tics. Match that voice in the rewrite.
@@ -317,8 +315,3 @@ Always present in this order:
 >
 > The productivity numbers are slippery. Thirty percent "acceptance" tells you how many suggestions a developer took, not how many were right, and definitely not how many actually saved time. If the test suite is thin, the assistant's confidence and your confidence track each other for the wrong reasons.
 
----
-
-## Credit
-
-Pattern catalogue adapted from [blader/humanizer](https://github.com/blader/humanizer), which builds on Wikipedia's [Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing) maintained by WikiProject AI Cleanup.

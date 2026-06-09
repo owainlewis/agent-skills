@@ -1,13 +1,11 @@
 ---
 name: pr-review-loop
-description: "Handle a GitHub pull request review loop: inspect live PR state, classify human and bot feedback, fix only still-actionable findings, verify checks, and report merge readiness with evidence."
+description: "Handle a GitHub pull request review loop: inspect live PR state, classify human and bot feedback, fix only still-actionable findings, verify checks, and report merge readiness with evidence. Use when the user asks 'fix the PR', 'address review comments', 'merge?', 'is this ready?', or wants PR feedback resolved before merging."
 user-invocable: true
 argument-hint: "<PR URL, number, branch, or current repository PR>"
 ---
 
 # PR Review Loop
-
-Use this when the user asks whether a PR is ready, says "fix the PR", "address review comments", "do the PR loop", "merge?", "safe?", or wants human/bot review feedback resolved before merging.
 
 The job is independent validation, not agreement. Re-read the live PR state and decide from evidence.
 

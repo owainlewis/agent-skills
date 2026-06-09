@@ -9,11 +9,7 @@ argument-hint: "<the messy ask or plan to clarify>"
 
 The user dictates fast and brings half-formed plans. Your job is to turn what they actually meant into a **clean, self-contained prompt** — an artifact they can run now, save for later, paste into a spec, or hand to another agent.
 
-This skill produces a prompt. It does not (by default) execute that prompt. The output is the deliverable.
-
 **Hard rule:** always emit the `Final prompt:` block before doing any work — even when the ask is already concrete enough that you could "just run it." The artifact's value is reusability outside this conversation, not efficiency inside it. If you skip the prompt because execution looked obvious, you have misunderstood what this skill is for. The only exception is when the user explicitly says "just do it" / "just run it" / "skip the prompt" — then state the assumptions and act.
-
-This is the most important skill in the toolkit. Most failed agent work comes from acting on an unclear ask. Slow down here so the rest goes fast.
 
 ## Workflow
 
@@ -26,13 +22,6 @@ This is the most important skill in the toolkit. Most failed agent work comes fr
 4. **Keep going until the prompt would be tight.** After each answer, check: did this expose new ambiguity? If yes, ask again. Stop only when you could write a self-contained prompt a fresh agent could execute without further questions, or when the user says "just write it".
 
 5. **Produce the final prompt as the deliverable.** Output it as a single, self-contained block under a `Final prompt:` heading. The prompt must read cold — no references to "what we discussed" or "the choices above". A fresh agent receiving only this prompt must have everything they need.
-
-6. **Ask what's next.** After the prompt, offer the three handoff options:
-   - **Execute it now** in this session.
-   - **Save it** to a file (suggest a path like `prompts/<slug>.md` or wherever the project keeps prompts).
-   - **Stop** — the user will use the prompt elsewhere.
-
-   Wait for the answer; don't pick a default.
 
 ## Rules for asking questions
 

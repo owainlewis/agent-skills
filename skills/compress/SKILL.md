@@ -1,17 +1,11 @@
 ---
 name: compress
-description: "Compress agent-facing instructions to the fewest words that preserve behavior, constraints, and clarity."
+description: "Compress agent-facing instructions to the fewest words that preserve behavior, constraints, and clarity. Use when the user asks to compress, shorten, tighten, or trim a prompt, spec, plan, or skill file."
 user-invocable: true
 argument-hint: "<file path or pasted instruction>"
 ---
 
 # Compress
-
-## When to use
-
-- Compressing specs, plans, tasks, prompts, `AGENTS.md`, or skill files
-- Removing redundancy from instructions before giving them to an agent
-- Tightening a document that has grown through repeated edits
 
 ## Process
 
@@ -30,13 +24,6 @@ argument-hint: "<file path or pasted instruction>"
    - file paths, exact names, identifiers, commands, and schemas
    - instructions that came from previous failures
 5. If asked to update a file, replace it with the compressed version. Otherwise return only the compressed instruction.
-
-## Verification
-
-- Meaning and behavioral constraints are preserved
-- Redundant wording is removed
-- Specific names, paths, commands, schemas, and examples still exist where needed
-- The result is easier for an agent to follow
 
 ## Rules
 

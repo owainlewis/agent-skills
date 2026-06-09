@@ -9,18 +9,9 @@ argument-hint: "<the text or draft prompt to refine>"
 
 Take the input text and return a single refined prompt that a coding or knowledge agent can execute well. The job is craft applied to wording and structure — turn a messy, ambiguous, or contradictory ask into a clear, explicit, well-ordered instruction.
 
-This is a **one-shot transformer**. It does not interview the user. It does not try to discover what the user "really wants" — that is [[clarify]]'s job. `prompt-enhance` takes the intent as given and makes the *prompt* better: clearer, more explicit, contradiction-free, properly scoped, and structured the way models follow best.
+This is a **one-shot transformer**. It does not interview the user. It does not try to discover what the user "really wants" — that is `clarify`'s job. `prompt-enhance` takes the intent as given and makes the *prompt* better: clearer, more explicit, contradiction-free, properly scoped, and structured the way models follow best.
 
 If you find yourself wanting to ask the user a question, you are reaching for `clarify`. Here, mark the gap in the output instead (see **Gaps**) and keep going.
-
-## When to use
-
-- The user has a draft prompt and wants it sharpened before running it.
-- A dictated or filler-heavy ask needs to become a tight instruction.
-- An existing prompt is underperforming and may contain ambiguity, contradictions, or missing scope.
-- You need to hand a prompt to another agent and want it to read cold.
-
-Skip it for a one-line ask that is already concrete — enhancing it would be ceremony.
 
 ## Workflow
 
@@ -57,7 +48,7 @@ When the input is missing something a strong prompt needs (a path, a success cri
 - fill it with a sensible default and record it under **Assumptions**, or
 - if there's no safe default, leave an inline `[NEEDS: <what's missing>]` placeholder so the user can fill it in before running.
 
-This is the line that keeps `prompt-enhance` one-shot. Questions belong to [[clarify]].
+This is the line that keeps `prompt-enhance` one-shot. Questions belong to `clarify`.
 
 ## Output
 

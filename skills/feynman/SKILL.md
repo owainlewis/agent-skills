@@ -1,6 +1,6 @@
 ---
 name: feynman
-description: "Write a clear, well-structured explanation of a technical topic. The output is a document that works as a course lesson, a reference for recording a YouTube video, or the basis for a newsletter — the writing principles are the same regardless."
+description: "Write a clear, well-structured explanation of a technical topic. Use when the user asks to explain, teach, or document a concept — as a course lesson, a YouTube reference, or the basis for a newsletter."
 user-invocable: true
 argument-hint: "<topic>"
 ---
@@ -24,7 +24,7 @@ After the opening, tell the reader what they'll understand by the end. At the se
 Terminology is a label, not an explanation. Describe what actually happens first. Introduce the term after the reader has seen the thing it labels.
 
 **Give the mental model before the formalism.**
-One plain sentence that captures the idea. Let it carry the reader before introducing architecture, taxonomy, or definitions.
+One plain sentence that captures the idea. Make sure the reader has hold of it before introducing architecture, taxonomy, or definitions.
 
 **One concrete example per section.**
 Walk one specific case all the way through before stating the general rule. Abstractions land far better once there is a real case hanging on them.
@@ -45,12 +45,6 @@ Short sentences. Common words. Write so the sentence reads easily aloud. Remove 
 If you removed the sentence and the reader lost no real information, cut it. "This changes everything", "it's an architecture decision you haven't made yet", "let it carry the reader" — these gesture at importance without stating what that importance is. Every sentence must describe something specific.
 
 </rules>
-
-<test>
-Before delivering, ask: could someone who knows nothing about this topic follow what you wrote? If a sentence would confuse them, rewrite it. If a term appears before it's been explained, explain it first.
-
-If you can't explain something simply, the explanation is thin — go back to the mechanism and start again.
-</test>
 
 <structure>
 

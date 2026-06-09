@@ -60,3 +60,7 @@ Fork the repo and point `npx skills@latest add` at your fork to install your own
 ## Requirements
 
 - [Claude Code](https://claude.ai/code), or another agent supported by the [`skills`](https://www.npmjs.com/package/skills) CLI.
+
+## Credits
+
+The `humanizer` pattern catalogue is adapted from [blader/humanizer](https://github.com/blader/humanizer), which builds on Wikipedia's [Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing) maintained by WikiProject AI Cleanup.
