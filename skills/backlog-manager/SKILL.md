@@ -33,7 +33,7 @@ The daily cron job should run the whole loop:
 3. **Find concrete repo drift and create issues** — look for evidence-backed codebase/docs/CI problems and create or propose tickets according to the run mode.
 4. **Sync ticket state** — move or label tickets based on linked PR evidence, active work, completed work, blocked work, or missing human decisions.
 5. **Close stale/completed tickets** — close only with clear evidence, usually a merged PR or verified obsolete request, and leave an audit comment.
-6. **Clean up unneeded branches** — identify branches already merged, abandoned, or tied to closed work. In dry-run, report candidates. In apply mode, delete only branches that match the branch-cleanup safety rules.
+6. **Clean up unneeded branches** — identify branches already merged, abandoned, or tied to closed work. Report candidates by default. Delete remote branches only when the run has explicit branch-cleanup approval and the branch matches the branch-cleanup safety rules.
 7. **Report** — summarize updates made, candidates skipped, blockers, and the next human decision needed.
 
 
@@ -347,7 +347,12 @@ Never delete:
 
 In `dry-run`, list branch cleanup candidates with evidence and do not delete anything.
 
-In `apply`, delete only remote branches that are clearly merged or tied to completed/closed work. If there is doubt, report the candidate under `Needs human` instead of deleting it.
+In `apply`, branch cleanup is still report-only unless the user or cron policy explicitly approves
+remote branch deletion for this run. Tracker `apply` does not imply permission to mutate git refs.
+
+When branch cleanup is explicitly approved, delete only remote branches that are clearly merged or tied
+to completed/closed work. If there is doubt, report the candidate under `Needs human` instead of
+deleting it.
 
 ### Step 9 — Verify Apply Runs
 
@@ -375,7 +380,7 @@ End with a compact summary:
 - issues marked `needs:human`
 - issues closed or synced from PR state
 - sweep candidates found or created
-- branch cleanup candidates found or deleted
+- branch cleanup candidates found, reported, or deleted with explicit approval
 - verification result
 - blockers and recommended next action
 
@@ -390,7 +395,7 @@ Cron prompts must be self-contained. Include:
 - source-of-truth rule
 - allowed mutation policy
 - whether to create issues or only propose candidates
-- whether safe merged-branch deletion is allowed or only reported
+- whether safe merged-branch deletion is explicitly approved for this run or only reported
 - verification requirements
 - delivery target
 
