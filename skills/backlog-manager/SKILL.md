@@ -155,7 +155,7 @@ Human needed:
 
 Think of the backlog manager as a repeatable operating loop, not a one-shot labelling tool.
 
-Use the requested mode when the user names one. Otherwise run the steps in order and clearly state which steps were dry-run versus applied.
+Use the requested mode when the user names one. For a plain backlog request, run only context loading, tracker detection, label checks, issue classification, PR-state sync, verification when applicable, and reporting. Run the repo sweep and candidate-issue steps only when the user explicitly asks for a sweep, the run is scheduled with sweep enabled, or project policy says the backlog manager should keep quality drift under review. Clearly state which steps were dry-run versus applied.
 
 ### Step 1 — Load Context
 
