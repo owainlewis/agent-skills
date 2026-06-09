@@ -1,6 +1,6 @@
 ---
 name: prompt-enhance
-description: "Take a piece of text — a rough prompt, a voice dump, a half-written instruction — and rewrite it into a refined, agent-ready prompt using prompt-engineering best practice. One-shot transformer: it improves the prompt, it does not interview you. Use when the user says 'make this a better prompt', 'enhance/refine this prompt', 'clean this up for an agent', or pastes a draft prompt to be improved."
+description: "Rewrites a rough prompt, voice dump, or half-written instruction into a refined, agent-ready prompt. Use when the user asks to make a prompt better, enhance/refine a prompt, clean up instructions for an agent, or improve pasted prompt text. One-shot transformer; does not interview."
 user-invocable: true
 argument-hint: "<the text or draft prompt to refine>"
 ---
