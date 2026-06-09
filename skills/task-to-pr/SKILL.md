@@ -42,12 +42,18 @@ the dependent tickets sequentially in one integration worktree.
 
 ### 3. Dispatch Workers
 
-A worker is any isolated agent context that can run the inner loop for one ticket. Use whatever the
-host agent provides:
+A worker is any isolated agent context that can run the inner loop for one ticket. The inner loop
+is a logical sequence per ticket, not necessarily one agent context. Use whatever the host agent
+provides:
 
-- Codex: spawn one thread per ticket.
-- Claude Code: spawn one subagent per ticket, pointed at the ticket's worktree; run subagents in
-  the background to parallelize a wave.
+- Codex: spawn one thread per ticket. A thread is a full session and runs the whole inner loop,
+  including requesting its own review subagent.
+- Claude Code with agent teams: spawn one teammate per ticket. Teammates are full sessions, like
+  Codex threads, and run the whole inner loop.
+- Claude Code with only subagents: subagents cannot spawn subagents, so the outer loop drives the
+  inner loop as a pipeline per ticket: an implementation subagent, then a fresh review subagent on
+  the same worktree, then a fix subagent for valid findings. The worktree carries state between
+  stages.
 - No worker tools: run the inner loop yourself, sequentially, one ticket and worktree at a time.
 
 Assume workers cannot be steered after launch. The packet must be self-contained: everything a
@@ -85,7 +91,8 @@ blocked or handed-off tickets.
 
 ## Inner Loop
 
-Each worker owns exactly one ticket and runs these steps in its worktree.
+The inner loop runs once per ticket, in that ticket's worktree, either inside a single worker or
+driven step by step by the outer loop when workers cannot spawn subagents.
 
 ### 1. Write Code
 
@@ -97,10 +104,14 @@ it.
 Add or update tests that prove the change, then run the relevant test suite and verification
 commands from the worker packet.
 
-### 3. Review With Subagents
+### 3. Review With Fresh Eyes
 
-Request a code-review subagent when available. Fix valid findings that are in scope, rerun the
-relevant checks, and stop on findings that require a human decision or source-context change.
+Get the work reviewed by an agent context that did not write it: a code-review subagent requested
+by the worker, or a fresh review subagent spawned by the outer loop when workers cannot spawn
+subagents. Fix valid findings that are in scope, rerun the relevant checks, and stop on findings
+that require a human decision or source-context change. If no separate reviewer is possible,
+self-review against the acceptance criteria and state in the PR body that no independent review
+ran.
 
 ### 4. Open A Draft PR
 
