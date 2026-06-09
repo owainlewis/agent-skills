@@ -1,6 +1,6 @@
 ---
 name: compress
-description: "Compress agent-facing instructions to the fewest words that preserve behavior, constraints, and clarity. Use when the user asks to compress, shorten, tighten, or trim a prompt, spec, plan, or skill file."
+description: "Compresses agent-facing instructions to the fewest words that preserve behavior, constraints, and clarity. Use when the user asks to compress, shorten, tighten, or trim a prompt, spec, plan, or skill file."
 user-invocable: true
 argument-hint: "<file path or pasted instruction>"
 ---

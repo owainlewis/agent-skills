@@ -1,6 +1,6 @@
 ---
 name: clarify
-description: "Turn a vague, messy, or multi-part user ask into a clean, self-contained prompt that a fresh agent could execute without further questions. Interview the user one question at a time — walking down the decision tree, branching on each answer — until the prompt is tight, then output the final prompt as the deliverable. Trigger eagerly: any voice-dictated input, filler-heavy prose, underspecified references (\"the thing\", \"that script\"), multi-part requests, or any plan the user wants stress-tested. The skill itself can be skipped for trivial one-line requests where producing a prompt artifact would be pure ceremony — but once invoked, always produce the prompt, even if execution looks trivial."
+description: "Turns vague, messy, voice-dictated, or multi-part asks into a clean, self-contained prompt a fresh agent can execute. Use when the user asks to clarify, stress-test, or tighten a plan, or when references like \"the thing\" need resolving. Interviews one question at a time, then outputs a final prompt."
 user-invocable: true
 argument-hint: "<the messy ask or plan to clarify>"
 ---

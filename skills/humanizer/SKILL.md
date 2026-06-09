@@ -1,6 +1,8 @@
 ---
 name: humanizer
-description: "Rewrite text to remove AI tells. Use when editing or reviewing writing that sounds like a chatbot wrote it. Detects and replaces inflated significance, rule-of-three, em dash overuse, AI vocabulary, condescending openers, reader-lecturing, signposting, and other tells."
+description: "Rewrites text to remove AI tells and recover a more human voice. Use when editing writing that sounds like a chatbot, has inflated significance, rule-of-three rhythm, em dash overuse, AI vocabulary, condescending openers, reader-lecturing, or signposting."
+user-invocable: true
+argument-hint: "<text, file path, or draft to humanize>"
 ---
 
 # Humanizer
@@ -314,4 +316,3 @@ Always present in this order:
 > The people I talk to use these tools differently. Some treat them as autocomplete for chores and review every line. Others turned the assistant off after it kept suggesting patterns from a deprecated internal library.
 >
 > The productivity numbers are slippery. Thirty percent "acceptance" tells you how many suggestions a developer took, not how many were right, and definitely not how many actually saved time. If the test suite is thin, the assistant's confidence and your confidence track each other for the wrong reasons.
-

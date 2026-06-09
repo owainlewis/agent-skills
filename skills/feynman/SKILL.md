@@ -1,6 +1,6 @@
 ---
 name: feynman
-description: "Write a clear, well-structured explanation of a technical topic. Use when the user asks to explain, teach, or document a concept — as a course lesson, a YouTube reference, or the basis for a newsletter."
+description: "Writes a clear, well-structured explanation of a technical topic. Use when the user asks to explain, teach, or document a concept as a course lesson, YouTube reference, or newsletter basis."
 user-invocable: true
 argument-hint: "<topic>"
 ---

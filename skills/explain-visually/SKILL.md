@@ -1,6 +1,6 @@
 ---
 name: explain-visually
-description: "Create a beautiful HTML explanation of a repo, spec, PR, architecture, or concept so a smart beginner can understand and retell it. Use when the user asks to visualize, diagram, or explain something as an HTML artifact."
+description: "Creates a beautiful HTML explanation of a repo, spec, PR, architecture, or concept so a smart beginner can understand and retell it. Use when the user asks to visualize, diagram, or explain something as an HTML artifact."
 user-invocable: true
 argument-hint: "<repo, spec, PR, architecture, concept, or source material>"
 ---

@@ -20,6 +20,9 @@ pull requests.
 Default to `dry-run`. Only mutate GitHub, Linear, or another tracker when the user explicitly asks
 for `apply`.
 
+When running unattended (scheduled or non-interactive), never wait for user input. Record any
+blocker or missing setup in the final report and exit.
+
 ## Jobs To Be Done
 
 This is one umbrella skill: **Engineering Backlog Manager**. Keep the recurring loop in one skill
@@ -143,6 +146,9 @@ data risk. Add `needs:human` to high-risk issues unless they are already clearly
 
 Put reasoning in the issue body or a comment instead of creating more labels.
 
+Only write or rewrite the assessment when the classification, reasoning, or plan has actually
+changed. Rewriting identical assessments on every run spams notifications.
+
 Add or update this block:
 
 ```md
@@ -224,7 +230,7 @@ For each open issue:
 1. Assign exactly one managed `risk:*` label.
 2. Assign exactly one managed `type:*` label.
 3. Decide whether `agent:ready` or `needs:human` should change.
-4. Add or update the Agent Assessment.
+4. Add or update the Agent Assessment only if it changed.
 5. Avoid marking an issue `agent:ready` when confidence is low. Use `needs:human` and explain why.
 
 Do not mark medium-risk or high-risk issues `agent:ready` unless the user explicitly asks for that policy change. Agents should be able to use `agent:ready` as their default pickup queue without re-litigating product risk.
@@ -412,7 +418,8 @@ $backlog-manager dry-run backlog from ./BACKLOG.md as the source of truth
 - Do not create speculative work.
 - Do not use the backlog manager to implement code.
 - Do not delete branches from this skill; only report cleanup candidates.
-- When unsure, classify conservatively and ask for human input.
+- When unsure, classify conservatively and route the question through `needs:human` instead of
+  waiting for a reply.
 
 ## Quality Bar
 
