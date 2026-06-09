@@ -42,8 +42,17 @@ the dependent tickets sequentially in one integration worktree.
 
 ### 3. Dispatch Workers
 
-Create one worker agent per ticket when subagent or thread tools are available. For an integration
-PR, start one worker at a time in the integration worktree. Send each worker a compact packet:
+A worker is any isolated agent context that can run the inner loop for one ticket. Use whatever the
+host agent provides:
+
+- Codex: spawn one thread per ticket.
+- Claude Code: spawn one subagent per ticket, pointed at the ticket's worktree; run subagents in
+  the background to parallelize a wave.
+- No worker tools: run the inner loop yourself, sequentially, one ticket and worktree at a time.
+
+Assume workers cannot be steered after launch. The packet must be self-contained: everything a
+worker needs to finish, or fail cleanly, without asking questions. For an integration PR, start one
+worker at a time in the integration worktree. Send each worker a compact packet:
 
 ```text
 Ticket:
@@ -57,8 +66,10 @@ PR target:
 Pause after:
 ```
 
-Each worker runs the inner loop for exactly one ticket. If no worker tools are available, stop
-unless the user explicitly allows sequential local execution.
+Each worker runs the inner loop for exactly one ticket and ends with a structured result: draft PR
+URL, verification run, and review findings fixed, or the exact blocker. A worker that needs a
+decision does not wait for an answer; it stops, reports the question, and the outer loop hands the
+ticket off.
 
 ### 4. Hand Off Failures
 
