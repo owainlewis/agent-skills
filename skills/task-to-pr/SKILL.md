@@ -21,8 +21,18 @@ ordinary coding task, code it directly unless the user asks for this loop.
 ### 1. Select Work
 
 Read the requested tickets, source context, issue tracker context, and repo state. Classify tickets
-as independent, dependent, conflicting, or unclear. Run independent tickets in parallel, run
-dependent tickets in waves, sequence conflicting tickets, and stop on unclear acceptance criteria.
+as independent, dependent, conflicting, or unclear. Stop on unclear acceptance criteria.
+
+Then order the queue:
+
+1. Dependencies first, in topological order.
+2. Tickets touching the same files next to each other, so conflicts resolve by sequencing instead
+   of rebasing.
+3. Among the rest, smallest and lowest-risk first, so the run banks easy wins before attempting
+   anything likely to fail.
+
+When the host supports parallel workers, run independent tickets in parallel and dependent tickets
+in waves; the queue order still decides wave order.
 
 For dependent tickets, prefer stacked draft PRs when each ticket remains reviewable on its own. If
 the tickets are really one feature or heavily overlap, ask whether to use one integration branch
@@ -43,18 +53,19 @@ the dependent tickets sequentially in one integration worktree.
 ### 3. Dispatch Workers
 
 A worker is any isolated agent context that can run the inner loop for one ticket. The inner loop
-is a logical sequence per ticket, not necessarily one agent context. Use whatever the host agent
-provides:
+is a logical sequence per ticket, not necessarily one agent context.
 
 - Codex: spawn one thread per ticket. A thread is a full session and runs the whole inner loop,
-  including requesting its own review subagent.
-- Claude Code with agent teams: spawn one teammate per ticket. Teammates are full sessions, like
-  Codex threads, and run the whole inner loop.
-- Claude Code with only subagents: subagents cannot spawn subagents, so the outer loop drives the
-  inner loop as a pipeline per ticket: an implementation subagent, then a fresh review subagent on
-  the same worktree, then a fix subagent for valid findings. The worktree carries state between
-  stages.
-- No worker tools: run the inner loop yourself, sequentially, one ticket and worktree at a time.
+  including requesting its own review subagent. Independent tickets can run in parallel.
+- Claude Code: run tickets sequentially in queue order. For each ticket, spawn one implementation
+  subagent in the ticket's worktree, then a fresh review subagent on the result. Subagents cannot
+  spawn subagents, so the coordinator owns the review step; the worktree carries state between
+  stages. Sequential keeps the coordinator a thin router and each ticket's context isolated.
+- No subagent tools: run the inner loop yourself, one ticket and worktree at a time, with the
+  self-review fallback from the inner loop.
+
+Parallelize only when the host provides full-session workers. Otherwise sequential is the default:
+simpler, no nesting problems, and the queue order already handles conflicts.
 
 Assume workers cannot be steered after launch. The packet must be self-contained: everything a
 worker needs to finish, or fail cleanly, without asking questions. For an integration PR, start one
@@ -129,7 +140,8 @@ unless explicitly asked.
 
 - The outer loop routes work; each worker runs the inner loop for one ticket.
 - Use one worktree and branch per ticket, unless the user chose one integration branch.
-- Parallelize only tickets that can be reviewed, merged, and reverted independently.
+- Parallelize only tickets that can be reviewed, merged, and reverted independently, and only when
+  the host provides full-session workers. Sequential in queue order is the default.
 - Do not overwrite, discard, or stage unrelated uncommitted work.
 - Do not invent issue tracker tickets or rewrite source context.
 - Skip or stop dependent tickets when an earlier ticket fails or changes the source context.
