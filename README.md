@@ -12,13 +12,12 @@
 | `pr-review-loop` | Handles the GitHub PR review loop: re-reads live PR state, classifies human and bot feedback, fixes still-actionable findings, verifies checks, and reports merge readiness with evidence. |
 | `explain-visually` | Builds a beautiful HTML explanation of a repo, spec, PR, architecture, or concept so a smart beginner can understand and retell it. |
 | `compress` | Compresses agent-facing instructions to the fewest words that preserve behavior, constraints, and clarity. |
-| `teaching-card` | Turns rough expertise, lesson sections, YouTube ideas, or demos into compact teaching cards that make one specific idea click. |
-| `teaching-doc` | Turns cards, rough notes, demos, or existing drafts into camera-readable Markdown lessons and YouTube companion docs with diagrams, prompts, code, and exercises. |
+| `feynman` | Writes a clear, well-structured explanation of a technical topic. Works as a course lesson, a reference for recording a YouTube video, or the basis for a newsletter. |
 
 ## Install
 
 ```bash
-npx skills add owainlewis/agent-skills
+npx skills@latest add owainlewis/agent-skills
 ```
 
 Installs the skills into your agent (Claude Code, Codex, Cursor, and others supported by the [`skills`](https://www.npmjs.com/package/skills) CLI). Invoke by name (`explain-visually`, `compress`) or via your agent's skill picker.
@@ -26,7 +25,7 @@ Installs the skills into your agent (Claude Code, Codex, Cursor, and others supp
 ## Update
 
 ```bash
-npx skills update
+npx skills@latest update
 ```
 
 ## Use
@@ -40,8 +39,7 @@ In Claude Code:
 /pr-review-loop https://github.com/owner/repo/pull/123
 /explain-visually this repo
 /compress skills/compress/SKILL.md
-/teaching-card explain git worktrees for Claude Code users
-/teaching-doc turn these notes into a YouTube companion doc about my multi-agent terminal setup
+/feynman agent memory
 ```
 
 ## Add your own skills
@@ -57,7 +55,7 @@ description: "When to trigger this skill"
 # Skill instructions
 ```
 
-Fork the repo and point `npx skills add` at your fork to install your own set.
+Fork the repo and point `npx skills@latest add` at your fork to install your own set.
 
 ## Requirements
 
