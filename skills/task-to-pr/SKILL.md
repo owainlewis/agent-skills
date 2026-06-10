@@ -23,6 +23,11 @@ ordinary coding task, code it directly unless the user asks for this loop.
 Read the requested tickets, source context, issue tracker context, and repo state. Classify tickets
 as independent, dependent, conflicting, or unclear. Stop on unclear acceptance criteria.
 
+When the source is a backlog query (for example "process agent-ready issues"), select only open
+issues labelled both `agent:ready` and `risk:low`. Skip issues that are closed, already linked to
+an open pull request, already assigned to an active worker, or labelled `needs:human`, and record
+each skip with its reason for the report.
+
 Then order the queue:
 
 1. Dependencies first, in topological order.
@@ -45,6 +50,12 @@ the tickets are really one feature or heavily overlap, ask whether to use one in
 and PR.
 
 ### 2. Prepare Worktrees
+
+Run the coordinator from the primary repository checkout, not a long-lived feature worktree.
+Before creating any worktrees: switch to the default branch, fetch origin, and pull the latest. If
+the coordinator working tree is dirty, stop and report the dirty files; never stash, overwrite, or
+discard coordinator changes. Base every ticket branch on the freshly pulled default branch, and
+never implement changes in the coordinator checkout itself.
 
 Inspect `git status`, current branch, remotes, and existing worktrees. For each unblocked ticket in
 the current wave, derive a traceable branch name from the ticket ID and short task summary, then
@@ -104,7 +115,8 @@ on the next run.
 
 The run is complete when each selected ticket is blocked or has a draft PR. Report each ticket's
 worker, worktree path, branch, commit, draft PR URL, verification, review findings fixed, and any
-blocked or handed-off tickets.
+blocked or handed-off tickets. Also report issues considered but skipped (with reasons), tickets
+left in the queue by the batch cap, and any questions that need a human decision.
 
 ## Inner Loop
 
@@ -137,6 +149,10 @@ available GitHub tools or `gh`. The PR body should include the ticket or source 
 criteria, verification run, review result, and anything not verified. If push or PR creation fails,
 keep the branch local and report the exact missing remote, auth, command, or tool capability.
 
+Open draft PRs by default. Mark a PR Ready For Review only when the user's run policy explicitly
+says to. When the ticket came from an issue tracker, comment on the source issue with the PR link
+and a one-line summary of what changed.
+
 ### 5. Pause
 
 Stop at the draft PR. Do not merge, resolve GitHub review, fix CI, or start follow-up changes
@@ -153,6 +169,10 @@ unless explicitly asked.
 - Do not overwrite, discard, or stage unrelated uncommitted work.
 - Do not invent issue tracker tickets or rewrite source context.
 - Skip or stop dependent tickets when an earlier ticket fails or changes the source context.
+- Pause a worker and report, instead of continuing, when a ticket needs credentials, secrets, paid
+  services, or product/architecture/security judgement not already answered in the ticket, when
+  tests fail for reasons unrelated to the change, or when a clean branch or worktree cannot be
+  created from the latest default branch.
 - Judge review findings; do not blindly implement every comment.
 - Open draft PRs only after verification ran, or clearly report what could not be verified.
 - Pause at draft PRs; merging is out of scope.
