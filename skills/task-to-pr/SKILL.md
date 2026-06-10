@@ -1,178 +1,148 @@
 ---
 name: task-to-pr
-description: "Turns one or more tickets into draft PRs by running the full developer loop. Outer loop: for each ticket, prepare an isolated worktree and dispatch a worker. Inner loop: write code, add and run tests, run review subagents, open a draft PR. Use when the user asks to work through tickets, process agent-ready backlog items, run issues in parallel, or produce draft PRs for review."
+description: "Turns explicit ticket references into draft or ready-for-review PRs. Use when the user passes tickets such as JIRA-123, LIN-123, a GitHub issue number or URL, a Linear issue, or a short ticket list, and wants code written, tests added, fresh subagent review, fixes applied, and a PR opened."
 user-invocable: true
-argument-hint: "<issue reference, ticket list, backlog query, or parallel task set>"
+argument-hint: "<ticket reference or list> e.g. JIRA-123, LIN-123, github#456, https://github.com/owner/repo/issues/456"
 ---
 
 # Task To PR
 
-Turn tickets into draft PRs. Two loops, one skill:
+Turn user-provided tickets into PRs. The user supplies the ticket reference or list; do not hunt
+for work by labels or backlog queries unless the user explicitly asks for backlog management.
 
-- **Inner loop** (one ticket): write code, add and run tests, run subagents to review the work,
-  open a draft PR.
-- **Outer loop**: for each ticket, run the inner loop in its own worktree.
-
-Use this when the user wants tickets worked through to draft PRs, especially in parallel. For one
-ordinary coding task, code it directly unless the user asks for this loop.
-
-## Outer Loop
-
-### 1. Select Work
-
-Read the requested tickets, source context, issue tracker context, and repo state. Classify tickets
-as independent, dependent, conflicting, or unclear. Stop on unclear acceptance criteria.
-
-When the source is a backlog query (for example "process agent-ready issues"), select only open
-issues labelled both `agent:ready` and `risk:low`. Skip issues that are closed, already linked to
-an open pull request, already assigned to an active worker, or labelled `needs:human`, and record
-each skip with its reason for the report.
-
-Then order the queue:
-
-1. Dependencies first, in topological order.
-2. Tickets touching the same files next to each other, so conflicts resolve by sequencing instead
-   of rebasing.
-3. Among the rest, smallest and lowest-risk first, so the run banks easy wins before attempting
-   anything likely to fail.
-
-When the host supports parallel workers, run independent tickets in parallel and dependent tickets
-in waves; the queue order still decides wave order.
-
-Cap the batch. Unless the user names an explicit ticket list or a different limit, take at most 3
-tickets from the queue per run and leave the rest for the next run. A human has to review every
-draft PR this skill produces, so the cap is the governor: never produce more open draft PRs than
-the user can realistically review. If the queue holds more eligible tickets than the cap, say how
-many were left behind in the report instead of working through them all.
-
-For dependent tickets, prefer stacked draft PRs when each ticket remains reviewable on its own. If
-the tickets are really one feature or heavily overlap, ask whether to use one integration branch
-and PR.
-
-### 2. Prepare Worktrees
-
-Run the coordinator from the primary repository checkout, not a long-lived feature worktree.
-Before creating any worktrees: switch to the default branch, fetch origin, and pull the latest. If
-the coordinator working tree is dirty, stop and report the dirty files; never stash, overwrite, or
-discard coordinator changes. Base every ticket branch on the freshly pulled default branch, and
-never implement changes in the coordinator checkout itself.
-
-Inspect `git status`, current branch, remotes, and existing worktrees. For each unblocked ticket in
-the current wave, derive a traceable branch name from the ticket ID and short task summary, then
-create a separate worktree. Default to a sibling root such as `../<repo-name>-worktrees/<branch-name>`.
-
-Use `git worktree add -b <branch> <path> <base>` for new branches. Reuse an existing worktree only
-when it is for the same branch and clean.
-
-For stacked PRs, base each dependent branch on its predecessor branch. For an integration PR, run
-the dependent tickets sequentially in one integration worktree.
-
-### 3. Dispatch Workers
-
-A worker is any isolated agent context that can run the inner loop for one ticket. The inner loop
-is a logical sequence per ticket, not necessarily one agent context.
-
-- Codex: spawn one thread per ticket. A thread is a full session and runs the whole inner loop,
-  including requesting its own review subagent. Independent tickets can run in parallel.
-- Claude Code: run tickets sequentially in queue order. For each ticket, spawn one implementation
-  subagent in the ticket's worktree, then a fresh review subagent on the result. Subagents cannot
-  spawn subagents, so the coordinator owns the review step; the worktree carries state between
-  stages. Sequential keeps the coordinator a thin router and each ticket's context isolated.
-- No subagent tools: run the inner loop yourself, one ticket and worktree at a time, with the
-  self-review fallback from the inner loop.
-
-Parallelize only when the host provides full-session workers. Otherwise sequential is the default:
-simpler, no nesting problems, and the queue order already handles conflicts.
-
-Assume workers cannot be steered after launch. The packet must be self-contained: everything a
-worker needs to finish, or fail cleanly, without asking questions. For an integration PR, start one
-worker at a time in the integration worktree. Send each worker a compact packet:
+Examples:
 
 ```text
-Ticket:
-Source context:
-Worktree:
-Branch:
-Base:
-Acceptance criteria:
-Verification:
-PR target:
-Pause after:
+task-to-pr JIRA-123
+task-to-pr LIN-123
+task-to-pr github#456
+task-to-pr https://github.com/owner/repo/issues/456
+task-to-pr LIN-123, LIN-124
 ```
 
-Each worker runs the inner loop for exactly one ticket and ends with a structured result: draft PR
-URL, verification run, and review findings fixed, or the exact blocker. A worker that needs a
-decision does not wait for an answer; it stops, reports the question, and the outer loop hands the
-ticket off.
+The core promise is: fetch the ticket, understand the acceptance criteria, write the code, add or
+update tests, verify the change, get a fresh subagent review, fix valid findings, then open a PR.
 
-### 4. Hand Off Failures
+## Workflow
 
-When a worker gives up on a ticket, remove its `agent:ready` label, add `needs:human`, and leave an
-issue comment explaining what went wrong, so the ticket lands with a human instead of being retried
-on the next run.
+### 1. Resolve The Ticket
 
-### 5. Report
+Treat each argument as an explicit ticket reference. Resolve it using the best available source:
 
-The run is complete when each selected ticket is blocked or has a draft PR. Report each ticket's
-worker, worktree path, branch, commit, draft PR URL, verification, review findings fixed, and any
-blocked or handed-off tickets. Also report issues considered but skipped (with reasons), tickets
-left in the queue by the batch cap, and any questions that need a human decision.
+- GitHub issue number or URL: use GitHub tools or `gh` to read the issue, comments, linked PRs, and
+  relevant labels only as context.
+- Linear issue key or URL: use Linear tools when available, or ask for the missing context if the
+  ticket cannot be fetched.
+- Jira issue key or URL: use Jira tools when available, browser/authenticated CLI if available, or
+  ask for the ticket content if the ticket cannot be fetched.
+- Plain text task: treat the text itself as the ticket source.
 
-## Inner Loop
+Capture the problem statement, acceptance criteria, relevant comments, linked designs, requested
+verification, and any explicit PR policy such as draft vs ready for review. If the ticket is
+unclear, already has an open PR for the same work, requires secrets or product decisions, or spans
+multiple unrelated changes, stop and report the blocker.
 
-The inner loop runs once per ticket, in that ticket's worktree, either inside a single worker or
-driven step by step by the outer loop when workers cannot spawn subagents.
+If the tracker supports status updates, move the selected ticket to the existing in-progress state
+and leave a short comment saying work has started. Do not create workflow states, labels, or
+tracker conventions.
 
-### 1. Write Code
+### 2. Prepare The Branch
 
-Make the smallest complete code change for the ticket. Use test-first work when the user asked for
-it.
+Work from a clean repository state. Inspect `git status`, current branch, remotes, and existing
+worktrees before editing. Do not overwrite, discard, or stage unrelated user changes.
 
-### 2. Add And Run Tests
+For each ticket, create a traceable branch name from the ticket ID and a short slug, prefixed with
+the repository's normal branch prefix when one exists. Use one branch per ticket unless the user
+explicitly asks for a combined PR.
 
-Add or update tests that prove the change, then run the relevant test suite and verification
-commands from the worker packet.
+When multiple tickets are provided:
 
-### 3. Review With Fresh Eyes
+- Run independent tickets in separate worktrees when full-session subagents or worker threads are
+  available.
+- Run dependent or overlapping tickets sequentially.
+- Stop dependent tickets when an earlier ticket fails or changes shared assumptions.
 
-Get the work reviewed by an agent context that did not write it: a code-review subagent requested
-by the worker, or a fresh review subagent spawned by the outer loop when workers cannot spawn
-subagents. Fix valid findings that are in scope, rerun the relevant checks, and stop on findings
-that require a human decision or source-context change. If no separate reviewer is possible,
-self-review against the acceptance criteria and state in the PR body that no independent review
-ran.
+If a clean branch or worktree cannot be created, stop before implementation and report the exact
+reason.
 
-### 4. Open A Draft PR
+### 3. Implement The Ticket
 
-Stage only intended files, create one clear commit, push the branch, and open a draft PR with
-available GitHub tools or `gh`. The PR body should include the ticket or source link, acceptance
-criteria, verification run, review result, and anything not verified. If push or PR creation fails,
-keep the branch local and report the exact missing remote, auth, command, or tool capability.
+Read the relevant code and tests before editing. Make the smallest complete change that satisfies
+the ticket. Follow the repository's existing patterns, helpers, framework conventions, and style.
 
-Open draft PRs by default. Mark a PR Ready For Review only when the user's run policy explicitly
-says to. When the ticket came from an issue tracker, comment on the source issue with the PR link
-and a one-line summary of what changed.
+Add or update tests whenever behavior changes, a bug is fixed, an interface changes, or an edge
+case is introduced. Prefer tests that prove the ticket's acceptance criteria instead of broad
+snapshot or smoke coverage.
 
-### 5. Pause
+Run the focused tests for the changed area first, then the wider project checks that are practical
+for the repo. If the ticket names specific verification commands, run those. Fix failures caused by
+the change; report unrelated failures clearly.
 
-Stop at the draft PR. Do not merge, resolve GitHub review, fix CI, or start follow-up changes
-unless explicitly asked.
+### 4. Review With A Fresh Subagent
+
+Use a fresh review subagent or separate agent context to review the diff before opening the PR.
+The reviewer should check:
+
+- Correctness against the ticket and acceptance criteria.
+- Missing, weak, or misleading tests.
+- Broken interfaces, migrations, permissions, security issues, or edge cases.
+- Unrelated changes or accidental formatting churn.
+
+Judge every finding. Fix valid in-scope issues, rerun the relevant checks, and request another
+review pass when the fixes are non-trivial. If no subagent capability exists, perform a careful
+self-review and say in the PR/report that independent review was unavailable.
+
+### 5. Open The PR
+
+Stage only intended files. Create one clear commit for the ticket unless the repo has a different
+local convention. Push the branch and open a PR with GitHub tools or `gh`.
+
+Open a draft PR by default. Mark it ready for review only when the user requested ready-for-review
+behavior or the ticket policy clearly requires it. Do not merge unless the user explicitly asks.
+
+The PR body should include:
+
+- Ticket link or reference.
+- Summary of the change.
+- Acceptance criteria status.
+- Tests and checks run.
+- Review method and valid findings fixed.
+- Anything not verified or any known follow-up.
+
+After the PR is created, update the source ticket when the tracker supports it:
+
+- Comment with the PR link, summary, and verification run.
+- Move the ticket to the existing review state, such as `In Review`, if that is part of the
+  tracker's normal workflow.
+- Do not add or remove labels unless the user or repository policy explicitly says to.
+
+If push or PR creation fails, keep the branch and commit local, then report the missing remote,
+auth, command, or tool capability.
+
+### 6. Report
+
+Finish with a concise run report:
+
+- Ticket reference and source.
+- Branch, commit, and PR URL.
+- What changed.
+- Tests and checks run.
+- Review findings fixed, or why independent review was unavailable.
+- Tracker updates made.
+- Anything blocked or not verified.
 
 ## Rules
 
-- The outer loop routes work; each worker runs the inner loop for one ticket.
-- Respect the batch cap: at most 3 tickets per run by default; more only when the user explicitly
-  names the tickets or raises the limit.
-- Use one worktree and branch per ticket, unless the user chose one integration branch.
-- Parallelize only tickets that can be reviewed, merged, and reverted independently, and only when
-  the host provides full-session workers. Sequential in queue order is the default.
-- Do not overwrite, discard, or stage unrelated uncommitted work.
-- Do not invent issue tracker tickets or rewrite source context.
-- Skip or stop dependent tickets when an earlier ticket fails or changes the source context.
-- Pause a worker and report, instead of continuing, when a ticket needs credentials, secrets, paid
-  services, or product/architecture/security judgement not already answered in the ticket, when
-  tests fail for reasons unrelated to the change, or when a clean branch or worktree cannot be
-  created from the latest default branch.
-- Judge review findings; do not blindly implement every comment.
-- Open draft PRs only after verification ran, or clearly report what could not be verified.
-- Pause at draft PRs; merging is out of scope.
+- The user supplies the ticket; do not select work by labels, queues, or backlog searches by
+  default.
+- One ticket maps to one branch and one PR unless the user explicitly asks for a combined PR.
+- Keep unrelated local changes intact.
+- Do not invent tracker states, labels, issue links, or acceptance criteria.
+- Add or update tests for meaningful behavior changes.
+- Use a fresh subagent review when available, and fix valid in-scope findings before opening the
+  PR.
+- Open PRs only after verification has run, or clearly state what could not be verified.
+- Stop and ask or report a blocker when the ticket needs credentials, secrets, paid services, or
+  product, architecture, or security judgment not already answered in the ticket.
+- Pause at the opened PR. Merging, extended CI triage, and post-review follow-up are separate work
+  unless the user explicitly asks for them.
