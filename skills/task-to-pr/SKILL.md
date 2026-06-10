@@ -20,8 +20,9 @@ task-to-pr https://github.com/owner/repo/issues/456
 task-to-pr LIN-123, LIN-124
 ```
 
-The core promise is: fetch the ticket, understand the acceptance criteria, write the code, add or
-update tests, verify the change, get a fresh subagent review, fix valid findings, then open a PR.
+The core promise is: fetch the ticket, move it to in progress, understand the acceptance criteria,
+write the code, add or update tests, verify the change, get a fresh subagent review, fix valid
+findings, open a PR, then move the ticket to a review status.
 
 ## Workflow
 
@@ -43,8 +44,10 @@ unclear, already has an open PR for the same work, requires secrets or product d
 multiple unrelated changes, stop and report the blocker.
 
 If the tracker supports status updates, move the selected ticket to the existing in-progress state
-and leave a short comment saying work has started. Do not create workflow states, labels, or
-tracker conventions.
+before writing code. Prefer an exact `In Progress` state when available; otherwise use the closest
+available active-work status. Leave a short comment saying work has started. Do not create workflow
+states, labels, or tracker conventions. If the status cannot be changed, keep working only when the
+ticket content is clear, and report the status update failure.
 
 ### 2. Prepare The Branch
 
@@ -112,9 +115,13 @@ The PR body should include:
 After the PR is created, update the source ticket when the tracker supports it:
 
 - Comment with the PR link, summary, and verification run.
-- Move the ticket to the existing review state, such as `In Review`, if that is part of the
-  tracker's normal workflow.
+- Move the ticket to a suitable existing review state. Prefer `In Review` when available; otherwise
+  use the closest available review/PR state such as `Review`, `Code Review`, `PR Open`, or
+  `Ready for Review`.
 - Do not add or remove labels unless the user or repository policy explicitly says to.
+
+Verify the final ticket status after updating it. If the status update fails, leave a comment with
+the PR link when possible and include the failure in the run report.
 
 If push or PR creation fails, keep the branch and commit local, then report the missing remote,
 auth, command, or tool capability.
@@ -138,6 +145,8 @@ Finish with a concise run report:
 - One ticket maps to one branch and one PR unless the user explicitly asks for a combined PR.
 - Keep unrelated local changes intact.
 - Do not invent tracker states, labels, issue links, or acceptance criteria.
+- Update ticket status as work progresses: move to in progress before coding, then to the best
+  available review status after opening the PR.
 - Add or update tests for meaningful behavior changes.
 - Use a fresh subagent review when available, and fix valid in-scope findings before opening the
   PR.
