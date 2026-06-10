@@ -34,6 +34,12 @@ Then order the queue:
 When the host supports parallel workers, run independent tickets in parallel and dependent tickets
 in waves; the queue order still decides wave order.
 
+Cap the batch. Unless the user names an explicit ticket list or a different limit, take at most 3
+tickets from the queue per run and leave the rest for the next run. A human has to review every
+draft PR this skill produces, so the cap is the governor: never produce more open draft PRs than
+the user can realistically review. If the queue holds more eligible tickets than the cap, say how
+many were left behind in the report instead of working through them all.
+
 For dependent tickets, prefer stacked draft PRs when each ticket remains reviewable on its own. If
 the tickets are really one feature or heavily overlap, ask whether to use one integration branch
 and PR.
@@ -139,6 +145,8 @@ unless explicitly asked.
 ## Rules
 
 - The outer loop routes work; each worker runs the inner loop for one ticket.
+- Respect the batch cap: at most 3 tickets per run by default; more only when the user explicitly
+  names the tickets or raises the limit.
 - Use one worktree and branch per ticket, unless the user chose one integration branch.
 - Parallelize only tickets that can be reviewed, merged, and reverted independently, and only when
   the host provides full-session workers. Sequential in queue order is the default.

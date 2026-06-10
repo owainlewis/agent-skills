@@ -67,6 +67,13 @@ The skill owns only the labels listed below. Existing tracker labels such as `bu
 `documentation`, `exploration`, `good first issue`, or team-specific labels should be left alone
 unless the user explicitly asks to normalize or remove legacy labels.
 
+Managed labels are additive by default. Trackers do not record who added a label, so treat every
+existing managed label as if a human set it deliberately. Never remove or change an existing
+`risk:*`, `type:*`, `agent:ready`, or `needs:human` label during classification; only add managed
+labels that are missing. The single exception is PR-evidence sync (Step 5), where `agent:ready` is
+removed because the work is demonstrably in progress or finished. If a run disagrees with an
+existing label, keep the label and raise the disagreement in the run report instead.
+
 ### Risk
 
 - `risk:low` - Safe for agent execution when the issue is also `agent:ready`.
@@ -91,8 +98,9 @@ These labels are the machine-readable handoff contract. Keep routing labels deli
 - `needs:human` - A human decision, clarification, or judgement call is required.
 
 Do not add extra routing labels by default. Use GitHub issue/PR state for completion and review state
-instead of labels like `agent:complete` or `agent:blocked`. If an issue cannot be safely progressed,
-remove `agent:ready` and add `needs:human` with a specific question.
+instead of labels like `agent:complete` or `agent:blocked`. If an unlabeled issue cannot be safely
+progressed, add `needs:human` with a specific question. If the issue already carries `agent:ready`,
+leave the label in place and raise the concern in the run report instead of removing it.
 
 ## Risk And Routing Rules
 
@@ -226,12 +234,16 @@ Recommended GitHub colors:
 
 Fetch open issues with title, body, labels, comments, status/project fields when available, and linked pull requests when the tracker exposes them.
 
+Classification fills gaps; it never overrides existing managed labels.
+
 For each open issue:
-1. Assign exactly one managed `risk:*` label.
-2. Assign exactly one managed `type:*` label.
-3. Decide whether `agent:ready` or `needs:human` should change.
-4. Add or update the Agent Assessment only if it changed.
-5. Avoid marking an issue `agent:ready` when confidence is low. Use `needs:human` and explain why.
+1. If it has no managed `risk:*` label, assign exactly one.
+2. If it has no managed `type:*` label, assign exactly one.
+3. If it has no routing label, decide whether to add `agent:ready`, `needs:human`, or neither.
+4. Never remove or change managed labels that are already present. If the classification disagrees
+   with an existing label, keep the label and note the disagreement in the run report.
+5. Add or update the Agent Assessment only if it changed.
+6. Avoid marking an issue `agent:ready` when confidence is low. Use `needs:human` and explain why.
 
 Do not mark medium-risk or high-risk issues `agent:ready` unless the user explicitly asks for that policy change. Agents should be able to use `agent:ready` as their default pickup queue without re-litigating product risk.
 
@@ -322,9 +334,9 @@ separate explicit branch-cleanup workflow or a human.
 ### Step 9 — Verify Apply Runs
 
 After an `apply` run, verify the tracker state before reporting:
-- Every remaining open issue has exactly one managed `risk:*` label.
-- Every remaining open issue has exactly one managed `type:*` label.
-- `agent:ready` only appears with `risk:low`.
+- Every remaining open issue has a managed `risk:*` label and a managed `type:*` label.
+- Any issue where `agent:ready` appears without `risk:low`, or alongside `needs:human`, is flagged
+  in the report, not auto-corrected. A human may have set those labels deliberately.
 - Every `risk:high` issue has `needs:human` unless there is a clear reason not to.
 - Every classified open issue has an `## Agent Assessment` block in the issue body or an equivalent comment.
 - Any stale completed issue closed during sync still keeps its final risk/type labels and assessment for auditability.
@@ -413,6 +425,8 @@ $backlog-manager dry-run backlog from ./BACKLOG.md as the source of truth
 
 - Default to `dry-run`.
 - Do not mutate trackers unless the user asks for `apply`.
+- Never remove or downgrade existing managed labels during classification; only fill gaps.
+  PR-evidence sync (Step 5) is the only step allowed to remove `agent:ready`.
 - Do not add `agent:ready` to high-risk issues.
 - Do not auto-close issues without clear linked merged PR evidence.
 - Do not create speculative work.
@@ -424,6 +438,7 @@ $backlog-manager dry-run backlog from ./BACKLOG.md as the source of truth
 ## Quality Bar
 
 - [ ] Uses the small fixed label set.
+- [ ] Existing managed labels were respected; classification only filled gaps.
 - [ ] Each classified issue has one managed risk label and one managed type label.
 - [ ] `agent:ready` only appears on low-risk, clear, verifiable work.
 - [ ] Human decisions are routed through `needs:human`, not extra labels.
