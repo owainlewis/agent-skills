@@ -23,6 +23,10 @@ for `apply`.
 When running unattended (scheduled or non-interactive), never wait for user input. Record any
 blocker or missing setup in the final report and exit.
 
+When a tracker has workflow/status fields, keep status in sync with the issue/PR lifecycle. Labels
+answer "who may pick this up"; statuses answer "where is it in the workflow." Do not use labels as a
+substitute for an available project/status field.
+
 ## Jobs To Be Done
 
 This is one umbrella skill: **Engineering Backlog Manager**. Keep the recurring loop in one skill
@@ -101,6 +105,10 @@ Do not add extra routing labels by default. Use GitHub issue/PR state for comple
 instead of labels like `agent:complete` or `agent:blocked`. If an unlabeled issue cannot be safely
 progressed, add `needs:human` with a specific question. If the issue already carries `agent:ready`,
 leave the label in place and raise the concern in the run report instead of removing it.
+
+If a repository already has a completion/routing convention such as `agent:complete` or
+`agent:blocked`, respect it only when the user asks this skill to sync that convention or when the
+repo docs clearly define it. Do not create those labels from this skill unless explicitly requested.
 
 ## Risk And Routing Rules
 
@@ -216,6 +224,17 @@ Otherwise:
 Do not infer a Linear board, GitHub Project, or local backlog from vague references. Divergent branches
 or planning docs are context for the product-manager review, not independent backlog sources.
 
+When the user names a GitHub Project or confirms one during the run, load its fields and record the
+status option IDs before mutating anything. Common mappings are:
+
+- `Todo` for open unstarted issues.
+- `In Progress` for issues currently owned by a worker or active branch.
+- `In Review` for issues with an open PR ready for review.
+- `Done` for issues closed by a merged PR.
+
+Use existing option names even when they differ slightly. Do not create project fields or statuses
+unless the user explicitly asks.
+
 ### Step 3 — Ensure Labels Exist
 
 In `dry-run`, report missing labels.
@@ -254,18 +273,32 @@ Keep issue state aligned with linked PRs.
 If a linked PR is open:
 - move the issue to the tracker review state when status/project fields are available
 - remove `agent:ready` if the work is already being attempted
+- leave or add a short issue comment only when it adds useful state, such as a missing PR link or
+  verification summary
 
 If a linked PR is merged:
 - remove `agent:ready`
 - close the issue when the PR clearly resolves it
+- move the issue/project item to the done state when status/project fields are available
+- preserve audit labels such as `risk:*`, `type:*`, and any repo-approved completion label
 
 If a linked PR is closed without merge:
 - remove `agent:ready`
 - add `needs:human` when the next step is unclear
 - comment with the known reason when available
+- move the issue/project item back to an appropriate open state only when the tracker policy is clear;
+  otherwise leave status unchanged and report the mismatch
 
 Do not close an issue unless the linked PR clearly resolves it. Use GitHub issue/PR state for
 completion instead of adding a separate completion label.
+
+If a PR exists but merge readiness is unclear, do not infer completion from the PR title or branch
+name. Check live PR state: draft flag, mergeability, checks, review submissions, and unresolved
+review threads. Open PR plus unresolved actionable feedback means review/in-progress, not done.
+
+When the backlog source has both issues and project items, verify the two agree after sync. For
+example, a closed issue should not remain `In Review`, and an open issue without an active PR should
+not remain `In Review` unless there is a human reason recorded.
 
 ### Step 6 — Sweep The Repo For Quality Drift
 
@@ -341,6 +374,10 @@ After an `apply` run, verify the tracker state before reporting:
 - Every classified open issue has an `## Agent Assessment` block in the issue body or an equivalent comment.
 - Any stale completed issue closed during sync still keeps its final risk/type labels and assessment for auditability.
 - Any issues created by the sweep are deduplicated and include evidence.
+- Issues with open linked PRs are in the review state when the tracker has one.
+- Issues closed because a linked PR merged are in the done state when the tracker has one.
+- No issue is both closed and left in an active status such as `In Progress` or `In Review`, unless
+  the report calls out a tracker limitation or failed API update.
 
 For GitHub, a small verification script using `gh issue list --json number,title,labels,body` is safer than eyeballing the web UI.
 
@@ -364,6 +401,12 @@ End with a compact summary:
 ## Scheduled Runs / Cron
 
 For scheduled backlog management, run the full engineering-backlog loop every time so the repo stays in a healthy state: review backlog, label tickets, find repo drift, create/propose missing issues, sync ticket state, close stale/completed tickets, report safe branch-cleanup candidates, verify, and report.
+
+The trigger can be an always-on assistant running this skill on a schedule, or a GitHub Actions
+workflow. For Actions, copy this skill into the target repo at `.claude/skills/backlog-manager/SKILL.md`
+and have the workflow prompt invoke it with an explicit mode; a `workflow_dispatch` input makes
+dry-run vs apply a manual choice. Note that the default `GITHUB_TOKEN` cannot edit user-level GitHub
+Projects, so Actions runs should treat project board mutations as report-only.
 
 Keep scheduled mutation policy explicit. A cron may run in `dry-run` mode, or in conservative `apply` mode once the user has approved exactly which mutations are allowed for the repo.
 
@@ -391,10 +434,19 @@ gh issue list --state open --limit 100 --json number,title,body,labels,url,creat
 gh issue edit <number> --add-label "risk:low,type:docs,agent:ready"
 gh issue comment <number> --body-file <file>
 gh issue close <number> --comment "Closed because linked PR <url> was merged."
+gh project list --owner <owner>
+gh project field-list <project-number> --owner <owner> --format json
+gh project item-list <project-number> --owner <owner> --limit 200 --format json
+gh project item-add <project-number> --owner <owner> --url <issue-or-pr-url> --format json
+gh project item-edit --id <item-id> --project-id <project-id> --field-id <status-field-id> --single-select-option-id <option-id>
 ```
 
 For linked PRs, use GraphQL or `gh pr list`/`gh pr view` as needed. Prefer exact linked PR data over
 guessing from branch names or text search.
+
+Project mutations can be flaky through the GitHub API. When a project write times out, query the item
+before retrying so you do not duplicate comments or create duplicate project items. Retry serially and
+verify the final status.
 
 ## Linear Adapter
 
@@ -429,6 +481,8 @@ $backlog-manager dry-run backlog from ./BACKLOG.md as the source of truth
   PR-evidence sync (Step 5) is the only step allowed to remove `agent:ready`.
 - Do not add `agent:ready` to high-risk issues.
 - Do not auto-close issues without clear linked merged PR evidence.
+- Do not mark a ticket done while linked PR checks are failing, pending, or unresolved review threads
+  remain actionable.
 - Do not create speculative work.
 - Do not use the backlog manager to implement code.
 - Do not delete branches from this skill; only report cleanup candidates.
