@@ -13,75 +13,66 @@ Create a human-facing HTML artifact that explains one idea through source-ground
 
 ### 1. Understand
 
-Read the source material. Identify the audience, core idea, moving parts, decisions, tradeoffs, and what the human should remember.
-
-Ground the explanation in facts from the source. Prefer concrete names, paths, commands, interfaces, examples, and observed behavior over positioning language.
-
-Default to explaining for a smart beginner. Define jargon before using it. If a term needs domain context, replace it with plain language or explain it visually.
+- Read the source.
+- Identify audience, core idea, moving parts, decisions, tradeoffs, and takeaway.
+- Ground claims in source facts.
+- Prefer concrete names, paths, commands, interfaces, examples, and observed behavior.
+- Define jargon before using it.
 
 ### 2. Outline
 
-Write the teaching path before building:
+Plan:
 
-- what the reader should understand
-- the order to explain it
-- which ideas need diagrams
-- what can be omitted
-- which source facts support the explanation
-
-Default teaching path:
-
-- the core lesson
+- core lesson
 - why the old way fails
-- the new mental model
+- new mental model
 - how it works
-- a concrete example
-- what to do next
+- concrete example
+- next action
+- diagrams needed
+- source facts used
+- omissions
 
 ### 3. Build
 
-Create a responsive HTML explainer. Use Tailwind CSS via CDN for layout and responsive behavior. Use custom CSS only for fonts, theme tokens, diagrams, and small refinements.
-
-Default format: slide-like sections on desktop, readable stacked sections on mobile. Do not preserve a fixed 16:9 frame on mobile.
-
-Use:
-
-- simple concrete titles
-- short explanatory copy
-- source-grounded statements, not slogans
-- SVG diagrams that teach the idea
-- responsive typographic scale, spacing, and visual hierarchy
-- one clear idea per section
+- Create a responsive HTML explainer.
+- Use Tailwind CSS via CDN.
+- Use custom CSS only for fonts, theme tokens, diagrams, and small refinements.
+- Use slide-like desktop sections and stacked mobile sections.
+- Do not preserve fixed 16:9 on mobile.
+- Use simple concrete titles.
+- Use short explanatory copy.
+- Use source-grounded statements, not slogans.
+- Use SVG diagrams that teach the idea.
+- Use responsive type, spacing, and visual hierarchy.
+- Keep one idea per section.
 
 ### 4. Verify
 
-Run `browser-verify` before finishing. Check desktop and mobile viewports. Fix overflow, overlap, clipped text, unreadable scale, cramped spacing, and broken responsive layout.
+Run `browser-verify`.
+Check desktop and mobile.
+Fix overflow, overlap, clipped text, unreadable scale, cramped spacing, and broken responsive layout.
 
 ## Style
 
-- Fonts: Bricolage Grotesque for body and UI, Instrument Serif for display.
-- Palette: warm paper background, dark ink, muted rust accent, restrained teal secondary.
-- Think in grids, line height, margins, and visual hierarchy.
-- Keep hero titles restrained. Prefer `md:text-7xl`; avoid `lg:text-9xl` unless the title is very short.
-- Split the artifact before cramming content.
-- On mobile, use natural-height sections, single-column grids, compact display type, readable text, and diagrams that fit without dominating the section.
-- A mobile hero should feel readable, not like a cropped desktop slide.
-- In SVG diagrams, align text inside shapes deliberately. Use `text-anchor`, `dominant-baseline`, explicit font sizes, and enough padding so labels do not drift, clip, or touch borders.
+- Body/UI font: Bricolage Grotesque.
+- Display font: Instrument Serif.
+- Palette: warm paper, dark ink, muted rust, restrained teal.
+- Hero title: prefer `md:text-7xl`; avoid `lg:text-9xl` unless very short.
+- Split content before cramming.
+- Mobile: natural-height sections, single-column grids, compact display type, readable text, fitted diagrams.
+- SVG labels: use `text-anchor`, `dominant-baseline`, explicit font sizes, and enough padding.
 
 ## Rules
 
 - Explain, do not decorate.
 - Teach before summarizing.
-- Simple words beat abstract titles.
-- Define loaded terms before relying on them.
-- The first screen must state the core lesson in plain language.
+- First screen states the core lesson in plain language.
 - Show at least one transformation: before/after, problem/solution, vague/clear, or hidden/visible.
-- Give the reader one reusable mental model.
-- Include one concrete example from the source material.
-- End with the action the reader should take next.
-- Make factual claims the source material supports.
-- Use concrete names, paths, commands, and examples when they help the reader trust the explanation.
-- Diagrams should make the idea easier to understand.
-- Diagram text must be centered, aligned, and contained inside its shapes.
-- Do not use `overflow: hidden` on content containers to hide layout problems.
+- Give one reusable mental model.
+- Include one concrete source example.
+- End with the reader's next action.
+- Use only source-supported factual claims.
+- Center and contain diagram text.
+- Do not use `overflow: hidden` to hide layout defects.
 - The artifact fails if text overlaps, clips, or overflows.

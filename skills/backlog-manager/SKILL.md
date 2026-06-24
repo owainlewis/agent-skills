@@ -1,132 +1,78 @@
 ---
 name: backlog-manager
-description: "Manage an engineering backlog for humans and AI agents: review the whole loop, classify issues, improve issue quality, sync pull-request state, and label safe tickets so AI agents know what work they can pick up. Use when GitHub Issues, GitHub Projects, Linear, or an explicit local backlog path is the source of truth."
+description: "Manage an engineering backlog for humans and AI agents: classify issues, improve issue quality, sync PR state, and label safe tickets for agent execution. Use when GitHub Issues, GitHub Projects, Linear, or an explicit local backlog path is the source of truth."
 user-invocable: true
 argument-hint: "<dry-run|apply> backlog for <GitHub repo|GitHub Project URL|Linear board|local path>"
 ---
 
 # Backlog Manager
 
-Manage an engineering backlog for humans and AI agents.
+Manage one backlog source of truth.
+Default to `dry-run`.
+Mutate trackers only when the user asks for `apply`.
+When unattended, never wait for input; report blockers and exit.
 
-Think of this skill as a lightweight product manager for the backlog. The goal is to keep engineering
-work clear, sequenced, classified, and safe to route to either humans or AI agents. A core job is to
-label safe, well-scoped tickets so AI agents know which work they are allowed to pick up, while
-marking ambiguous, risky, or judgement-heavy work for humans. This is backlog review and project-state
-hygiene, not implementation. It labels issues, improves issue quality, identifies missing follow-up
-tickets, creates evidence-backed maintenance tickets when allowed, and syncs issue state with linked
-pull requests.
+Labels answer who may pick up work.
+Statuses answer workflow state.
+Use tracker status fields when available.
 
-Default to `dry-run`. Only mutate GitHub, Linear, or another tracker when the user explicitly asks
-for `apply`.
+## Source Contract
 
-When running unattended (scheduled or non-interactive), never wait for user input. Record any
-blocker or missing setup in the final report and exit.
+Use exactly one source per run:
 
-When a tracker has workflow/status fields, keep status in sync with the issue/PR lifecycle. Labels
-answer "who may pick this up"; statuses answer "where is it in the workflow." Do not use labels as a
-substitute for an available project/status field.
+- GitHub Issues for a named repo when `gh` is installed and authenticated.
+- GitHub Projects when the user provides a project URL/path and `gh` can access it.
+- Linear when the user provides a team/project/board path and a Linear connector is available.
+- Local backlog file only when the user provides the path and says it is the source of truth.
 
-## Jobs To Be Done
+Default to GitHub Issues when the current repo has a GitHub remote and authenticated `gh`.
+If no source can be resolved, ask for a backlog path/URL or missing setup.
+Treat roadmap files, ticket files, planning docs, and README sections as context unless explicitly chosen as the source.
 
-This is one umbrella skill: **Engineering Backlog Manager**. Keep the recurring loop in one skill
-because the jobs share the same source of truth, labels, state model, and report. Split into separate
-skills only when a job needs a different toolchain or safety policy.
+## Managed Labels
 
-Run the whole workflow by default rather than asking the user to orchestrate several tiny modes. The
-workflow has three simple phases:
+Do not invent labels unless asked.
+Leave non-managed labels alone.
+Do not remove or downgrade existing managed labels during classification.
+Exception: PR sync may remove `agent:ready` when work is in progress or done.
+If classification disagrees with an existing managed label, keep the label and report the disagreement.
 
-1. **Triage the backlog** — inspect open issues, current labels, stale state, linked PRs, and recent tracker changes.
-2. **Prepare the queue** — classify issues by risk/type, mark safe work as `agent:ready`, route judgement-heavy work to `needs:human`, and add/update Agent Assessments.
-3. **Maintain and report** — sync clearly completed issues from PR evidence, propose or create evidence-backed maintenance tickets, report branch cleanup candidates, verify the result, and summarize the next human decision.
+Risk:
 
-The skill is not a coding agent. Its main output is a clean backlog and a safe queue that a separate execution loop can consume.
+- `risk:low`: safe for agent execution when also `agent:ready`.
+- `risk:medium`: may become agent-suitable later; no unattended execution by default.
+- `risk:high`: human-led; agents may investigate or plan only.
 
-## Backlog Source Contract
+Type:
 
-Use exactly one backlog source of truth per run. Do not merge competing local and remote backlogs.
+- `type:bug`: incorrect behavior or regression.
+- `type:feature`: new user-facing or developer-facing capability.
+- `type:docs`: docs, examples, README, comments, links, or written guidance.
+- `type:test`: test additions, fixes, coverage, fixtures, or reliability.
+- `type:refactor`: internal restructuring without intended behavior change.
+- `type:chore`: dependencies, build scripts, CI, formatting, metadata, repo cleanup, or tooling.
 
-Supported sources:
-- **GitHub Issues** for a named repo, using an installed and authenticated `gh` CLI.
-- **GitHub Projects** when the user provides the project URL/path and `gh` can access it.
-- **Linear** when the user provides the team/project/board path and a Linear connector is available.
-- **Explicit local backlog path** only when the user provides that path and says it is the source of truth.
+Routing:
 
-Default to GitHub Issues when the current repository has a GitHub remote and `gh` is installed and
-authenticated. If `gh` is missing or unauthenticated, stop and report the prerequisite instead of
-falling back to local planning files.
+- `agent:ready`: permission for an agent execution loop to pick up the issue.
+- `needs:human`: human decision, clarification, or judgement required.
 
-If the user does not name a tracker and no GitHub Issues source can be inferred, ask for the backlog
-path/URL. Examples: a Linear board, a GitHub Project, a GitHub repo, or an explicit local backlog file.
+Do not create completion labels such as `agent:complete` or `agent:blocked` unless repo docs define them or the user asks.
 
-Local roadmap files, ticket files, planning docs, and README sections are context only unless the user
-explicitly says they are the backlog source. Treat divergence between those files and the tracker as
-quality drift to report or fix, not as a second backlog to reconcile by default.
+## Routing Rules
 
-## Labels
+Add `agent:ready` only when all are true:
 
-Use this small fixed label set. Do not invent extra labels unless the user asks.
-
-The skill owns only the labels listed below. Existing tracker labels such as `bug`, `enhancement`,
-`documentation`, `exploration`, `good first issue`, or team-specific labels should be left alone
-unless the user explicitly asks to normalize or remove legacy labels.
-
-Managed labels are additive by default. Trackers do not record who added a label, so treat every
-existing managed label as if a human set it deliberately. Never remove or change an existing
-`risk:*`, `type:*`, `agent:ready`, or `needs:human` label during classification; only add managed
-labels that are missing. The single exception is PR-evidence sync (Step 5), where `agent:ready` is
-removed because the work is demonstrably in progress or finished. If a run disagrees with an
-existing label, keep the label and raise the disagreement in the run report instead.
-
-### Risk
-
-- `risk:low` - Safe for agent execution when the issue is also `agent:ready`.
-- `risk:medium` - Possibly agent-suitable later, but do not execute unattended by default.
-- `risk:high` - Human-led. Agents may investigate or plan, but should not execute unattended.
-
-### Type
-
-- `type:bug` - Incorrect behavior or regression.
-- `type:feature` - New user-facing or developer-facing capability.
-- `type:docs` - Documentation, examples, README, comments, broken links, or written guidance.
-- `type:test` - Test additions, test fixes, coverage, fixtures, or test reliability.
-- `type:refactor` - Internal restructuring without intended behavior change.
-- `type:chore` - Maintenance such as dependency upgrades, build scripts, CI config, formatting,
-  package metadata, repo cleanup, or tool configuration.
-
-### Routing
-
-These labels are the machine-readable handoff contract. Keep routing labels deliberately small:
-
-- `agent:ready` - Permission for an AI agent execution loop to pick up the issue.
-- `needs:human` - A human decision, clarification, or judgement call is required.
-
-Do not add extra routing labels by default. Use GitHub issue/PR state for completion and review state
-instead of labels like `agent:complete` or `agent:blocked`. If an unlabeled issue cannot be safely
-progressed, add `needs:human` with a specific question. If the issue already carries `agent:ready`,
-leave the label in place and raise the concern in the run report instead of removing it.
-
-If a repository already has a completion/routing convention such as `agent:complete` or
-`agent:blocked`, respect it only when the user asks this skill to sync that convention or when the
-repo docs clearly define it. Do not create those labels from this skill unless explicitly requested.
-
-## Risk And Routing Rules
-
-Use a simple contract. The execution loop should be able to query `agent:ready` and trust that the
-issue is safe to attempt without re-litigating product risk.
-
-### `agent:ready`
-
-Only add `agent:ready` when all are true:
-- risk is `risk:low`
+- `risk:low`
 - scope is clear
-- the work is small enough for one pull request
+- one-PR size
 - expected output is clear
-- likely verification is known
-- no product, UX, architecture, security, data, billing, auth, or deployment judgement is required
-- the issue is not already linked to active work
+- verification is known
+- no product, UX, architecture, security, data, billing, auth, or deployment judgement
+- no active linked work
 
 Good low-risk examples:
+
 - docs updates
 - broken links
 - stale README commands
@@ -136,36 +82,25 @@ Good low-risk examples:
 - simple CI command/config drift
 - patch dependency upgrades with passing tests
 
-### `needs:human`
-
 Add `needs:human` when any are true:
-- requirements are ambiguous
-- expected behavior is unclear
-- a reproduction is missing for a real bug
-- the issue is too large for one pull request
-- the issue needs product, UX, architecture, security, data, billing, auth, or deployment judgement
-- the agent cannot classify the issue with confidence
-- a previous agent attempt failed and the next step is unclear
 
-### Risk levels
+- requirements or expected behavior are unclear
+- reproduction is missing for a real bug
+- issue is too large for one PR
+- product, UX, architecture, security, data, billing, auth, or deployment judgement is needed
+- classification confidence is low
+- previous agent attempt failed and next step is unclear
 
-Use `risk:low` for small, bounded changes with clear verification and low blast radius.
+Risk:
 
-Use `risk:medium` when the change may be agent-suitable later, but needs more confidence, stronger
-tests, or close human review. Do not mark medium-risk issues `agent:ready` unless the user explicitly
-asks this workflow to include medium-risk work.
-
-Use `risk:high` when unattended execution could create meaningful product, security, operational, or
-data risk. Add `needs:human` to high-risk issues unless they are already clearly human-owned.
+- `risk:low`: small, bounded, clear verification, low blast radius.
+- `risk:medium`: may be agent-suitable later; needs more confidence, tests, or close review.
+- `risk:high`: unattended execution could create product, security, operational, or data risk; add `needs:human` unless human-owned.
 
 ## Agent Assessment
 
-Put reasoning in the issue body or a comment instead of creating more labels.
-
-Only write or rewrite the assessment when the classification, reasoning, or plan has actually
-changed. Rewriting identical assessments on every run spams notifications.
-
-Add or update this block:
+Put reasoning in the issue body or a comment.
+Update only when classification, reasoning, or plan changes.
 
 ```md
 ## Agent Assessment
@@ -175,7 +110,7 @@ Type: bug | feature | docs | test | refactor | chore
 Agent-ready: yes | no
 
 Reason:
-<1-3 sentences explaining the classification.>
+<1-3 sentences.>
 
 Suggested plan:
 1. <small first step>
@@ -183,151 +118,122 @@ Suggested plan:
 3. <verification step>
 ```
 
-If human input is needed, include:
+If input is needed:
 
 ```md
 Human needed:
-<specific question or decision required before an agent can execute.>
+<specific question or decision.>
 ```
 
 ## Workflow
 
-Think of the backlog manager as a repeatable product-management operating loop, not a one-shot labelling tool.
+### 1. Load Context
 
-Each run should review the whole backlog loop against the selected source of truth: load context, resolve the backlog source, check labels, classify open issues for human/agent routing, sync clearly completed issues from pull-request evidence, sweep for evidence-backed quality drift, create or propose missing tickets according to the run mode, report branch cleanup candidates, verify tracker state, and report. Clearly state which steps were dry-run versus applied.
+Read:
 
-### Step 1 — Load Context
-
-Read repository or workspace instructions first:
 - `AGENTS.md`
 - `CLAUDE.md`
 - README files
 - contribution/development docs
 - issue templates
-- local roadmap/backlog docs only as context, unless the user explicitly provides one as the backlog source
+- local roadmap/backlog docs as context only
 
-Use this context to classify risk and write issue assessments. Do not make up project policy.
+Use context for risk and assessments.
+Do not invent project policy.
+Report drift between docs and tracker state.
 
-If repo docs disagree with the selected backlog source, treat that as quality drift. Do not let local roadmap or ticket files override GitHub Issues, GitHub Projects, or Linear unless the user explicitly made the local path authoritative.
+### 2. Resolve Source
 
-### Step 2 — Resolve Backlog Source
+Use the user-named source.
+Otherwise use GitHub Issues only when `gh` is installed, authenticated, and the current directory has a GitHub remote.
+Do not infer Linear, GitHub Projects, or local backlogs from vague references.
 
-Use the backlog source the user names.
+For GitHub Projects, load fields and status option IDs before mutating.
+Map existing status options, commonly:
 
-Otherwise:
-- Use GitHub Issues only when `gh` is installed, authenticated, and the current directory has a GitHub remote.
-- Use GitHub Projects only when the user provides a project URL/path and `gh` can access it.
-- Use Linear only when the user provides a Linear team/project/board path and a Linear connector/tool is available.
-- Use a local backlog file only when the user explicitly provides the file path and says it is the source of truth.
-- If no backlog source can be resolved, stop and ask for the backlog path/URL or the missing setup.
+- `Todo`: open unstarted issues.
+- `In Progress`: owned issue or active branch.
+- `In Review`: open PR ready for review.
+- `Done`: closed by merged PR.
 
-Do not infer a Linear board, GitHub Project, or local backlog from vague references. Divergent branches
-or planning docs are context for the product-manager review, not independent backlog sources.
+Do not create project fields or statuses unless asked.
 
-When the user names a GitHub Project or confirms one during the run, load its fields and record the
-status option IDs before mutating anything. Common mappings are:
-
-- `Todo` for open unstarted issues.
-- `In Progress` for issues currently owned by a worker or active branch.
-- `In Review` for issues with an open PR ready for review.
-- `Done` for issues closed by a merged PR.
-
-Use existing option names even when they differ slightly. Do not create project fields or statuses
-unless the user explicitly asks.
-
-### Step 3 — Ensure Labels Exist
+### 3. Ensure Labels
 
 In `dry-run`, report missing labels.
+In `apply`, create missing labels when supported.
 
-In `apply`, create missing labels where the tracker supports it.
+GitHub colors:
 
-Recommended GitHub colors:
-- `risk:low` - `0E8A16`
-- `risk:medium` - `FBCA04`
-- `risk:high` - `B60205`
-- `type:*` - `5319E7`
-- `agent:*` - `1D76DB`
-- `needs:human` - `D93F0B`
+- `risk:low`: `0E8A16`
+- `risk:medium`: `FBCA04`
+- `risk:high`: `B60205`
+- `type:*`: `5319E7`
+- `agent:*`: `1D76DB`
+- `needs:human`: `D93F0B`
 
-### Step 4 — Classify Open Issues
+### 4. Classify Open Issues
 
-Fetch open issues with title, body, labels, comments, status/project fields when available, and linked pull requests when the tracker exposes them.
-
-Classification fills gaps; it never overrides existing managed labels.
+Fetch title, body, labels, comments, status/project fields, and linked PRs.
 
 For each open issue:
-1. If it has no managed `risk:*` label, assign exactly one.
-2. If it has no managed `type:*` label, assign exactly one.
-3. If it has no routing label, decide whether to add `agent:ready`, `needs:human`, or neither.
-4. Never remove or change managed labels that are already present. If the classification disagrees
-   with an existing label, keep the label and note the disagreement in the run report.
-5. Add or update the Agent Assessment only if it changed.
-6. Avoid marking an issue `agent:ready` when confidence is low. Use `needs:human` and explain why.
 
-Do not mark medium-risk or high-risk issues `agent:ready` unless the user explicitly asks for that policy change. Agents should be able to use `agent:ready` as their default pickup queue without re-litigating product risk.
+1. Add one `risk:*` label only if missing.
+2. Add one `type:*` label only if missing.
+3. If no routing label exists, add `agent:ready`, `needs:human`, or neither.
+4. Keep existing managed labels; report disagreements.
+5. Add/update Agent Assessment only when changed.
+6. Use `needs:human` when confidence is low.
 
-### Step 5 — Sync Issue State With Pull Requests
+Do not mark medium/high risk issues `agent:ready` unless the user asks for that policy.
 
-Keep issue state aligned with linked PRs.
+### 5. Sync Issue State With PRs
 
-If a linked PR is open:
-- move the issue to the tracker review state when status/project fields are available
-- remove `agent:ready` if the work is already being attempted
-- leave or add a short issue comment only when it adds useful state, such as a missing PR link or
-  verification summary
+If linked PR is open:
 
-If a linked PR is merged:
+- move issue to review state when status fields exist
 - remove `agent:ready`
-- close the issue when the PR clearly resolves it
-- move the issue/project item to the done state when status/project fields are available
-- preserve audit labels such as `risk:*`, `type:*`, and any repo-approved completion label
+- comment only when adding missing PR link or verification summary
 
-If a linked PR is closed without merge:
+If linked PR is merged:
+
 - remove `agent:ready`
-- add `needs:human` when the next step is unclear
-- comment with the known reason when available
-- move the issue/project item back to an appropriate open state only when the tracker policy is clear;
-  otherwise leave status unchanged and report the mismatch
+- close the issue only when the PR clearly resolves it
+- move project item to done when status fields exist
+- keep audit labels and assessments
 
-Do not close an issue unless the linked PR clearly resolves it. Use GitHub issue/PR state for
-completion instead of adding a separate completion label.
+If linked PR is closed unmerged:
 
-If a PR exists but merge readiness is unclear, do not infer completion from the PR title or branch
-name. Check live PR state: draft flag, mergeability, checks, review submissions, and unresolved
-review threads. Open PR plus unresolved actionable feedback means review/in-progress, not done.
+- remove `agent:ready`
+- add `needs:human` when next step is unclear
+- comment with known reason when available
+- move status back only when tracker policy is clear
 
-When the backlog source has both issues and project items, verify the two agree after sync. For
-example, a closed issue should not remain `In Review`, and an open issue without an active PR should
-not remain `In Review` unless there is a human reason recorded.
+Do not infer completion from PR title or branch.
+Check draft flag, mergeability, checks, review submissions, and unresolved threads.
+Verify issue state and project item state agree after sync.
 
-### Step 6 — Sweep The Repo For Quality Drift
+### 6. Sweep For Quality Drift
 
-Run this step on every full backlog review. Keep it evidence-driven and proportional: the goal is to catch product/project drift that should become a ticket or a report item, not to perform an unbounded code audit.
+Run on full backlog reviews.
+Create/propose tickets only for concrete evidence:
 
-The sweep is evidence-driven. Look for concrete problems, not speculative improvements:
-- stale docs referencing closed/open issue state incorrectly
-- local backlog or roadmap docs that contradict tracker state
-- docs saying something is not implemented when code exists, or saying it exists when code is missing
-- broken local Markdown links
-- README/setup commands that do not exist in `justfile`, package scripts, CLI help, Makefile, or docs
-- generated docs drift when the repo has a documented check command
-- TODO/FIXME/HACK comments that describe clear, bounded work
+- docs contradict tracker or code state
+- local backlog/roadmap contradicts tracker
+- broken Markdown links
+- README/setup commands missing from scripts, CLI help, Makefile, or docs
+- generated docs drift with documented check command
+- bounded TODO/FIXME/HACK comments
 - skipped tests or disabled checks that look accidental
-- recent failed CI/check runs on the default branch
-- simple build/lint/config drift with a clear verification command
+- recent failed CI/check runs on default branch
+- simple build/lint/config drift with clear verification
 
-Do not create issues for:
-- vague improvement ideas
-- speculative refactors
-- architecture rewrites
-- product ideas
-- anything requiring business, UX, security, data, billing, auth, or deployment judgement
+Do not create issues for speculative improvements, architecture rewrites, product ideas, or work needing business, UX, security, data, billing, auth, or deployment judgement.
+Deduplicate against open and recently closed issues.
 
-Deduplicate against existing open and recently closed issues before proposing or creating anything.
+### 7. Create Candidate Issues
 
-### Step 7 — Create Candidate Issues
-
-In `dry-run`, do not create issues. Output candidates in this shape:
+In `dry-run`, output candidates only:
 
 ```md
 Candidate issue: <title>
@@ -344,87 +250,72 @@ Confidence: high | medium | low
 Create issue: yes | no
 ```
 
-In `apply`, create a new issue only when there is concrete evidence of a real problem and confidence is high. If the concern is plausible but not proven, mention it in the run report instead of creating a ticket.
+In `apply`, create a new issue only with concrete evidence and high confidence.
+Every created issue must include evidence, why it matters, suggested fix, and Agent Assessment.
 
-Every agent-created issue must include:
-- evidence, including file paths, commands, config keys, PRs, issue links, or code references
-- why the problem matters
-- a small suggested fix
-- an Agent Assessment
+### 8. Report Branch Cleanup Candidates
 
-### Step 8 — Report Unneeded Branches
+Report branches that are:
 
-Treat branch cleanup as backlog hygiene, but do not delete branches from this skill.
-
-Inspect remote branches and PR state. Good cleanup candidates are branches that are:
-- already merged into the default branch
+- merged into the default branch
 - linked to closed issues or merged/closed PRs with no remaining work
-- stale automation branches whose PR was closed without merge and has no active follow-up
+- stale automation branches whose PR closed unmerged with no follow-up
 
-Never delete branches in this workflow. Report cleanup candidates with evidence and leave deletion to a
-separate explicit branch-cleanup workflow or a human.
+Never delete branches from this skill.
 
-### Step 9 — Verify Apply Runs
+### 9. Verify Apply Runs
 
-After an `apply` run, verify the tracker state before reporting:
-- Every remaining open issue has a managed `risk:*` label and a managed `type:*` label.
-- Any issue where `agent:ready` appears without `risk:low`, or alongside `needs:human`, is flagged
-  in the report, not auto-corrected. A human may have set those labels deliberately.
-- Every `risk:high` issue has `needs:human` unless there is a clear reason not to.
-- Every classified open issue has an `## Agent Assessment` block in the issue body or an equivalent comment.
-- Any stale completed issue closed during sync still keeps its final risk/type labels and assessment for auditability.
-- Any issues created by the sweep are deduplicated and include evidence.
-- Issues with open linked PRs are in the review state when the tracker has one.
-- Issues closed because a linked PR merged are in the done state when the tracker has one.
-- No issue is both closed and left in an active status such as `In Progress` or `In Review`, unless
-  the report calls out a tracker limitation or failed API update.
+After `apply`, verify:
 
-For GitHub, a small verification script using `gh issue list --json number,title,labels,body` is safer than eyeballing the web UI.
+- open issues have one managed `risk:*` and one managed `type:*`
+- `agent:ready` without `risk:low`, or with `needs:human`, is flagged
+- `risk:high` has `needs:human` unless a reason is recorded
+- classified open issues have Agent Assessment
+- sweep-created issues are deduplicated and evidence-backed
+- open linked PRs map to review state when available
+- merged linked PRs map to done state when available
+- no closed issue remains active unless reported as tracker limitation or failed API update
 
-### Step 10 — Report
+For GitHub, prefer `gh issue list --json number,title,labels,body` over web UI checks.
 
-End with a compact summary:
-- tracker used
-- mode used
-- steps run: classify, sync, sweep, create candidates/issues, branch cleanup report, verify
-- number of issues inspected
+### 10. Report
+
+Include:
+
+- tracker and mode
+- steps run
+- issues inspected
 - labels created or missing
 - issues changed
-- issues marked `agent:ready`
-- issues marked `needs:human`
+- `agent:ready` count
+- `needs:human` count
 - issues closed or synced from PR state
 - sweep candidates found or created
-- branch cleanup candidates found and reported
+- branch cleanup candidates
 - verification result
-- blockers and recommended next action
+- blockers and next action
 
-## Scheduled Runs / Cron
+## Scheduled Runs
 
-For scheduled backlog management, run the full engineering-backlog loop every time so the repo stays in a healthy state: review backlog, label tickets, find repo drift, create/propose missing issues, sync ticket state, close stale/completed tickets, report safe branch-cleanup candidates, verify, and report.
+Run the full loop: review backlog, label tickets, find drift, create/propose issues, sync ticket state, close completed tickets, report branch cleanup candidates, verify, report.
 
-The trigger can be an always-on assistant running this skill on a schedule, or a GitHub Actions
-workflow. For Actions, copy this skill into the target repo at `.claude/skills/backlog-manager/SKILL.md`
-and have the workflow prompt invoke it with an explicit mode; a `workflow_dispatch` input makes
-dry-run vs apply a manual choice. Note that the default `GITHUB_TOKEN` cannot edit user-level GitHub
-Projects, so Actions runs should treat project board mutations as report-only.
+Cron prompts must include:
 
-Keep scheduled mutation policy explicit. A cron may run in `dry-run` mode, or in conservative `apply` mode once the user has approved exactly which mutations are allowed for the repo.
-
-Cron prompts must be self-contained. Include:
-- repo/tracker name
+- repo/tracker
 - source-of-truth rule
 - allowed mutation policy
-- whether to create issues or only propose candidates
+- create issues or propose only
 - verification requirements
 - delivery target
 
-Default scheduled behaviour should not merge PRs, publish releases, change secrets, spend money, delete branches, or make high-risk changes.
+Default scheduled behavior must not merge PRs, publish releases, change secrets, spend money, delete branches, or make high-risk changes.
+
+For GitHub Actions, copy this skill to `.claude/skills/backlog-manager/SKILL.md` and invoke with explicit mode.
+Default `GITHUB_TOKEN` cannot edit user-level GitHub Projects; treat project mutations as report-only.
 
 ## GitHub Adapter
 
 Use `gh` when available.
-
-Useful commands:
 
 ```bash
 gh repo view --json nameWithOwner,url
@@ -441,29 +332,18 @@ gh project item-add <project-number> --owner <owner> --url <issue-or-pr-url> --f
 gh project item-edit --id <item-id> --project-id <project-id> --field-id <status-field-id> --single-select-option-id <option-id>
 ```
 
-For linked PRs, use GraphQL or `gh pr list`/`gh pr view` as needed. Prefer exact linked PR data over
-guessing from branch names or text search.
-
-Project mutations can be flaky through the GitHub API. When a project write times out, query the item
-before retrying so you do not duplicate comments or create duplicate project items. Retry serially and
-verify the final status.
+Use GraphQL or `gh pr list`/`gh pr view` for linked PRs.
+Before retrying timed-out project writes, query item state to avoid duplicate comments or project items.
 
 ## Linear Adapter
 
-Use Linear when the user asks for Linear and the connector/tool is available.
+Use Linear when requested and available.
+Map labels directly: `risk:*`, `type:*`, `agent:ready`, `needs:human`.
+Map issue status to existing workflow states.
+Do not create new Linear statuses unless asked.
+Use linked PR state when Linear and GitHub are connected.
 
-Map labels directly:
-- `risk:*`
-- `type:*`
-- `agent:ready`
-- `needs:human`
-
-Map issue status to the workspace's existing workflow states. Do not create new status states unless
-the user asks.
-
-When Linear and GitHub are connected, use linked PR state to update Linear issue status and labels.
-
-## Example Invocations
+## Invocations
 
 ```text
 $backlog-manager dry-run GitHub backlog for this repo
@@ -473,30 +353,28 @@ $backlog-manager dry-run Linear backlog for team ENG project Agentic Engineer
 $backlog-manager dry-run backlog from ./BACKLOG.md as the source of truth
 ```
 
-## Safety Rules
+## Safety
 
 - Default to `dry-run`.
-- Do not mutate trackers unless the user asks for `apply`.
-- Never remove or downgrade existing managed labels during classification; only fill gaps.
-  PR-evidence sync (Step 5) is the only step allowed to remove `agent:ready`.
+- Mutate trackers only with `apply`.
+- Never remove or downgrade existing managed labels during classification.
+- PR sync may remove `agent:ready`.
 - Do not add `agent:ready` to high-risk issues.
-- Do not auto-close issues without clear linked merged PR evidence.
-- Do not mark a ticket done while linked PR checks are failing, pending, or unresolved review threads
-  remain actionable.
+- Do not auto-close issues without linked merged PR evidence.
+- Do not mark done while linked PR checks fail, are pending, or unresolved review threads remain actionable.
 - Do not create speculative work.
-- Do not use the backlog manager to implement code.
-- Do not delete branches from this skill; only report cleanup candidates.
-- When unsure, classify conservatively and route the question through `needs:human` instead of
-  waiting for a reply.
+- Do not implement code.
+- Do not delete branches.
+- When unsure, classify conservatively and add `needs:human`.
 
 ## Quality Bar
 
-- [ ] Uses the small fixed label set.
-- [ ] Existing managed labels were respected; classification only filled gaps.
-- [ ] Each classified issue has one managed risk label and one managed type label.
-- [ ] `agent:ready` only appears on low-risk, clear, verifiable work.
-- [ ] Human decisions are routed through `needs:human`, not extra labels.
-- [ ] Issue reasoning lives in Agent Assessment, not label sprawl.
-- [ ] Merged PR cleanup only happens with clear evidence.
-- [ ] Branch cleanup is report-only.
-- [ ] Final report is concise and actionable.
+- Fixed label set used.
+- Existing managed labels respected.
+- Each classified issue has one risk and one type.
+- `agent:ready` only on low-risk, clear, verifiable work.
+- Human decisions routed through `needs:human`.
+- Reasoning lives in Agent Assessment.
+- Merged PR cleanup has evidence.
+- Branch cleanup is report-only.
+- Final report includes verification and next action.
