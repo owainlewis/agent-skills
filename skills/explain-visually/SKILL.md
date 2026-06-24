@@ -1,13 +1,13 @@
 ---
 name: explain-visually
-description: "Creates a beautiful HTML explanation of a repo, spec, PR, architecture, or concept so a smart beginner can understand and retell it. Use when the user asks to visualize, diagram, or explain something as an HTML artifact."
+description: "Creates a responsive HTML explainer with source-grounded copy, teaching diagrams, and browser-verified layout. Use when the user asks to visualize, diagram, or explain something as an HTML artifact."
 user-invocable: true
 argument-hint: "<repo, spec, PR, architecture, concept, or source material>"
 ---
 
 # Explain Visually
 
-Create a human-facing HTML artifact that explains an idea visually. Beauty serves clarity. The reader should understand the idea well enough to retell it.
+Create a human-facing HTML artifact that explains one idea through source-grounded copy, teaching diagrams, and browser-verified layout.
 
 ## Workflow
 
@@ -50,7 +50,7 @@ Use:
 - short explanatory copy
 - source-grounded statements, not slogans
 - SVG diagrams that teach the idea
-- strong typography, spacing, and visual hierarchy
+- responsive typographic scale, spacing, and visual hierarchy
 - one clear idea per section
 
 ### 4. Verify
@@ -84,6 +84,4 @@ Run `browser-verify` before finishing. Check desktop and mobile viewports. Fix o
 - Diagrams should make the idea easier to understand.
 - Diagram text must be centered, aligned, and contained inside its shapes.
 - Do not use `overflow: hidden` on content containers to hide layout problems.
-- Prefer useful clarity over clever phrasing.
-- The artifact fails if the reader cannot explain the idea back.
 - The artifact fails if text overlaps, clips, or overflows.

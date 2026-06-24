@@ -7,14 +7,14 @@
 | Skill | What it does |
 |---|---|
 | `humanizer` | Rewrites text to remove AI tells (em dashes, "Most people don't…", significance inflation, signposting, etc.) and puts a voice back in. Runs a draft → audit → final pass. |
-| `clarify` | Turns a vague ask or half-formed plan into a clean, self-contained prompt you can run anywhere. Interviews you one question at a time — with a recommended answer each time — then hands back the final prompt as the deliverable. Run it now, save it, or hand it to another agent. |
-| `prompt-enhance` | Takes a draft prompt or messy text and rewrites it into a refined, agent-ready prompt using prompt-engineering best practice — explicit scope, no contradictions, output contract, success criteria. One-shot: it improves the prompt, it doesn't interview you (that's `clarify`). |
+| `clarify` | Turns a vague ask or half-formed plan into a clean, self-contained prompt you can run anywhere. Interviews you one question at a time with a recommended answer each time, then hands back the final prompt as the deliverable. Run it now, save it, or hand it to another agent. |
+| `prompt-enhance` | Takes a draft prompt or messy text and rewrites it into a refined, agent-ready prompt using prompt-engineering best practice: explicit scope, no contradictions, output contract, success criteria. One-shot: it improves the prompt, it doesn't interview you (that's `clarify`). |
 | `backlog-manager` | Keeps a GitHub Issues or Linear backlog tidy: classifies risk/type, marks agent-ready work, adds issue assessments, and syncs issue state with linked PRs. |
-| `explain-visually` | Builds a beautiful HTML explanation of a repo, spec, PR, architecture, or concept so a smart beginner can understand and retell it. |
-| `compress` | Compresses agent-facing instructions to the fewest words that preserve behavior, constraints, and clarity. |
-| `feynman` | Writes a clear, well-structured explanation of a technical topic. Works as a course lesson, a reference for recording a YouTube video, or the basis for a newsletter. |
+| `explain-visually` | Builds a responsive HTML explainer with source-grounded copy, teaching diagrams, and browser-verified layout. |
+| `compress` | Simplifies skills, prompts, and instructions to load-bearing verbs, nouns, constraints, examples, and checks. |
+| `feynman` | Explains one technical theme with mechanism-first sections, concrete examples, edge cases, and an exercise. |
 
-The software development workflow skills — `spec`, `plan`, `implement`, `task-to-pr`, `pr-to-ready`, and friends — live in [owainlewis/blueprint](https://github.com/owainlewis/blueprint).
+The software development workflow skills - `spec`, `plan`, `implement`, `task-to-pr`, `pr-to-ready`, and friends - live in [owainlewis/blueprint](https://github.com/owainlewis/blueprint).
 
 ## Install
 
