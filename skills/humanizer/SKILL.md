@@ -1,69 +1,54 @@
 ---
 name: humanizer
-description: "Rewrite any kind of writing so it sounds clear, human, and plain. Use for landing pages, emails, docs, posts, scripts, lessons, prompts, and messages that contain AI slop, purple prose, cliches, em dashes, hype, vague claims, or over-polished language."
+description: "Rewrite any writing so it sounds clear, human, and plain. Use for landing pages, emails, docs, posts, scripts, lessons, prompts, and messages with AI slop, purple prose, cliches, em dashes, hype, vague claims, or over-polished language."
 user-invocable: true
 argument-hint: "<text, file path, or draft to humanize>"
 ---
 
 # Humanizer
 
-Rewrite writing so it sounds like a clear person wrote it.
+Rewrite any writing in plain English.
 
-Use this for any type of writing:
+Use for:
 
 - landing pages
 - sales copy
 - emails
 - docs
-- course lessons
+- lessons
 - scripts
-- social posts
+- posts
 - prompts
-- internal notes
+- notes
 - product copy
-
-The goal is not casual.
-The goal is clear.
-
-Use simple words. Use concrete examples. Cut anything that sounds profound but does not say a real thing.
 
 ## Process
 
 1. Read the input.
-2. Work out what the writer is trying to say.
-3. Remove AI slop, purple prose, cliches, and fake depth.
-4. Rewrite in plain English.
-5. Check the rewrite against the audit.
-6. Return only what is useful.
+2. Identify what the writer means.
+3. Remove AI slop, purple prose, cliches, hype, and fake depth.
+4. Rewrite with simple words, concrete nouns, and natural rhythm.
+5. Run the checks.
+6. Return only useful output.
 
-## Voice Defaults
-
-- Use the user's voice sample when present.
-- Use short, normal words.
-- Prefer concrete nouns: email, task, note, file, meeting, customer, invoice, reply.
-- Prefer concrete verbs: get, make, ask, send, read, write, save, run, check.
-- Use first person when it fits.
-- Allow normal human rhythm. Not every sentence needs to be polished.
-- Be direct, but not robotic.
-- Keep the real opinion if there is one.
-- If a claim is missing proof, soften it or mark it as unknown.
-
-## Hard Rules
+## Rules
 
 - No em dashes.
 - No purple prose.
 - No cliches.
 - No slogan endings.
-- No vague magic.
-- No fake profundity.
-- No inflated claims.
-- No "stop X, start Y" copy unless it says something concrete.
-- No "not just X, but Y" unless the contrast is genuinely useful.
-- No "unlock", "elevate", "supercharge", "transform", "leverage", "seamless", "robust", "holistic", "game-changing", or similar filler.
-- No "let's dive in", "here's the thing", "the real question is", "at its core", or "in today's fast-paced world".
-- No invented numbers, proof, stories, or results.
+- No fake depth.
+- No invented proof, numbers, stories, or results.
+- Use the user's voice sample when present.
+- Use short, normal words.
+- Prefer concrete nouns: email, task, note, file, meeting, customer, invoice, reply.
+- Prefer concrete verbs: get, make, ask, send, read, write, save, run, check.
+- Keep real opinions. If proof is missing, soften the claim or mark it unknown.
+- Do not use "unlock", "elevate", "supercharge", "transform", "leverage", "seamless", "robust", "holistic", or "game-changing".
+- Do not use "let's dive in", "here's the thing", "the real question is", "at its core", or "in today's fast-paced world".
+- Avoid "stop X, start Y" and "not just X, but Y" unless the line says something concrete.
 
-## AI Slop Patterns
+## Slop Patterns
 
 | Pattern | Watch for | Fix |
 |---|---|---|
@@ -82,19 +67,17 @@ Use simple words. Use concrete examples. Cut anything that sounds profound but d
 | Fancy verb | serves as, stands as, represents, showcases | Use is, has, uses, shows. |
 | Vague source | experts say, many believe, studies show | Name the source or cut it. |
 
-## Plain English Tests
+## Checks
 
-Before returning the rewrite, ask:
+- Can the reader picture it?
+- Does it say what they will have, do, see, or decide?
+- Would a smart 10-year-old understand it?
+- Would a real person say it out loud?
+- Did vague value become a concrete example?
+- Is there any slogan rhythm left?
+- Are there any em dashes?
 
-1. Can the reader picture the thing?
-2. Does this say what they will have, do, see, or decide?
-3. Would a smart 10-year-old understand it?
-4. Would a real person say this out loud?
-5. Did we replace vague value with a concrete example?
-6. Is there any slogan rhythm left?
-7. Are there any em dashes?
-
-## Rewrite Examples
+## Examples
 
 Bad:
 
@@ -120,33 +103,15 @@ Better:
 
 > Give the assistant one job, such as preparing your day each morning. Then give it the files, tools, and rules it needs to do that job without you explaining everything again.
 
-Bad:
-
-> This course transforms the way you work by helping you build an agentic operating system.
-
-Better:
-
-> This course helps you build an assistant that checks your calendar, reads your tasks, and gives you a short plan for the day.
-
-Bad:
-
-> The institute was established in 1989, marking a pivotal moment in regional statistics.
-
-Better:
-
-> The institute was established in 1989 to publish regional statistics independently.
-
 ## Output
 
-Default output:
+Default:
 
-1. `Rewrite:` the improved text.
-2. `Changed:` 2 to 4 short notes if useful.
+1. `Rewrite:` improved text.
+2. `Changed:` 2 to 4 short notes, only if useful.
 
-When the user asks why something is bad, return:
+When asked why text is bad:
 
-1. `Pattern:` the main issue.
+1. `Pattern:` main issue.
 2. `Why it fails:` one plain sentence.
-3. `Rewrite:` the improved text.
-
-Keep the answer short unless the user asks for detail.
+3. `Rewrite:` improved text.
