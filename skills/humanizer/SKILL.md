@@ -1,133 +1,152 @@
 ---
 name: humanizer
-description: "Rewrite text to remove AI tells and recover human voice. Use for drafts with inflated significance, rule-of-three rhythm, em dash overuse, AI vocabulary, condescending openers, reader-lecturing, or chatbot scaffolding."
+description: "Rewrite any kind of writing so it sounds clear, human, and plain. Use for landing pages, emails, docs, posts, scripts, lessons, prompts, and messages that contain AI slop, purple prose, cliches, em dashes, hype, vague claims, or over-polished language."
 user-invocable: true
 argument-hint: "<text, file path, or draft to humanize>"
 ---
 
 # Humanizer
 
-Rewrite text so it sounds written by a person, not an LLM.
+Rewrite writing so it sounds like a clear person wrote it.
+
+Use this for any type of writing:
+
+- landing pages
+- sales copy
+- emails
+- docs
+- course lessons
+- scripts
+- social posts
+- prompts
+- internal notes
+- product copy
+
+The goal is not casual.
+The goal is clear.
+
+Use simple words. Use concrete examples. Cut anything that sounds profound but does not say a real thing.
 
 ## Process
 
 1. Read the input.
-2. If a voice sample exists, match its sentence length, word choice, openings, transitions, and tics.
-3. Remove or rewrite the patterns below.
-4. Return a draft rewrite.
-5. Audit the draft: list 2-4 remaining AI tells.
-6. Return a final rewrite that fixes them.
-7. Add a change list only when requested or when it explains a non-obvious rewrite.
+2. Work out what the writer is trying to say.
+3. Remove AI slop, purple prose, cliches, and fake depth.
+4. Rewrite in plain English.
+5. Check the rewrite against the audit.
+6. Return only what is useful.
 
 ## Voice Defaults
 
-- Use the user's sample when present.
-- Take a position.
-- Vary sentence and paragraph length.
+- Use the user's voice sample when present.
+- Use short, normal words.
+- Prefer concrete nouns: email, task, note, file, meeting, customer, invoice, reply.
+- Prefer concrete verbs: get, make, ask, send, read, write, save, run, check.
 - Use first person when it fits.
-- Keep real mixed feelings.
-- Replace vague feeling with concrete detail.
-- Allow slight mess: asides, interruptions, uneven rhythm.
+- Allow normal human rhythm. Not every sentence needs to be polished.
+- Be direct, but not robotic.
+- Keep the real opinion if there is one.
+- If a claim is missing proof, soften it or mark it as unknown.
 
-## Pattern Table
+## Hard Rules
 
-| Pattern | Watch | Rewrite |
+- No em dashes.
+- No purple prose.
+- No cliches.
+- No slogan endings.
+- No vague magic.
+- No fake profundity.
+- No inflated claims.
+- No "stop X, start Y" copy unless it says something concrete.
+- No "not just X, but Y" unless the contrast is genuinely useful.
+- No "unlock", "elevate", "supercharge", "transform", "leverage", "seamless", "robust", "holistic", "game-changing", or similar filler.
+- No "let's dive in", "here's the thing", "the real question is", "at its core", or "in today's fast-paced world".
+- No invented numbers, proof, stories, or results.
+
+## AI Slop Patterns
+
+| Pattern | Watch for | Fix |
 |---|---|---|
-| Inflated importance | stands as, serves as, testament, pivotal moment, vital role, underscores, broader landscape, indelible mark, deeply rooted, setting the stage | Replace importance claims with what happened. |
-| Promotional language | boasts, vibrant, rich, profound, nestled, breathtaking, stunning, must-visit, groundbreaking, renowned, commitment to | Replace with concrete facts. |
-| Condescending openers | Most people don't realize, Most developers never, What most people miss, Few people understand, Most teams get this wrong | Start with the point. |
-| Signposting | let's dive in, let's explore, let's break this down, here's what you need to know, in this article we'll, without further ado, by the end you'll | Delete the setup. |
-| Fake authority | The real question is, at its core, in reality, fundamentally, here's the thing, make no mistake, the deeper issue, the truth is | State the claim directly. |
-| Present-participle tails | highlighting, underscoring, reflecting, symbolizing, contributing to, fostering, showcasing, emphasizing | Split the sentence or name the relationship. |
-| Fancy verbs | serves as, stands as, represents, marks, functions as, boasts, features | Prefer is, has, uses, includes. |
-| Negative parallelism | not just X, it's Y; not merely X; no guessing; no wasted motion | Replace contrast with the actual claim. |
-| Rule of three | three abstract nouns in a row | Cut the forced rhythm. |
-| Elegant variation | repeated synonyms for the same thing | Repeat the noun when clearer. |
-| False ranges | from X to Y where X and Y are not a scale | Use a plain list. |
-| AI vocabulary clusters | delve, leverage, garner, foster, navigate, intricate, tapestry, landscape, interplay, robust, seamless, holistic, multifaceted, comprehensive, nuanced, underscore, showcase, harness, unlock, elevate, empower, align with, testament, pivotal, vibrant, transformative, paradigm, embark, journey | Cut or replace with plain words. |
-| Em dash overuse | repeated em dash pauses | Use commas, periods, colons, or parentheses. Keep one only when the pause changes the sentence. |
-| Smart punctuation | curly quotes in plain text | Use straight quotes unless typeset prose requires curly quotes. |
-| Formatting tells | random inline bold, `- **Label:** Label...`, title case headings, emoji decoration | Remove decoration. Use sentence case headings and plain bullets. |
-| Vague attribution | experts believe, observers note, critics say | Name the source or cut the appeal. |
-| Chatbot artifacts | Great question, Certainly, Of course, You're absolutely right, I hope this helps, Let me know if, Would you like me to | Cut. |
-| Knowledge-cutoff hedging | as of my last update, while specific details are limited, based on available information | Cut. If unknown, say so or omit. |
-| Excessive hedging | could potentially possibly, might have some effect | Keep one qualifier. |
-| Filler phrases | in order to, due to the fact that, at this point in time, in the event that, has the ability to, it is important to note that | Use to, because, now, if, can, or delete. |
-| Formulaic closers | Despite challenges, X continues to thrive; The future looks bright; Exciting times lie ahead | End on a concrete fact. |
-| Passive voice and dropped subjects | No configuration file needed; Results are preserved automatically | Use active voice when clearer. |
-| Rhetorical-question openers | What if I told you, Ever wondered why, Have you noticed that | Start with the point. |
-| Trend framing | X is having a moment | Cut. |
-| Borrowed authority | best practice, industry standard, recommended approach, experts agree, it is recommended that | Use the writer's preference or evidence. |
-| Vague magnitudes | considerable time, extended period, significantly faster, large number of | Replace with a number or `[NEEDS REAL NUMBER]`. |
+| Tidy contrast | Stop X. Start Y. Not just X, but Y. | Say the actual action or result. |
+| Fake depth | The real shift is. The deeper truth is. At its core. | State the point in normal words. |
+| Purple prose | profound, breathtaking, vibrant, rich, nestled, tapestry | Replace mood with facts. |
+| Abstract nouns | transformation, potential, impact, alignment, innovation | Name the thing the reader can picture. |
+| Vague magic | unlock, elevate, empower, supercharge, 10x | Say what changes in the user's day. |
+| Marketing negation | Not a toy. Not a demo. Not a prompt pack. | Show what the person will have. |
+| Grand claim | This changes everything. The future is here. | Make the claim smaller and specific. |
+| Persona fog | AI operator, business OS, agentic workflow | Define it with examples or cut it. |
+| Motivational rhythm | short punchy line, short punchy line, profound closer | Use natural sentences. |
+| Empty outcome | save time, work smarter, get more done | Name the saved task or decision. |
+| Condescending opener | Most people do not realize. What people miss. | Start with the point. |
+| Chatbot scaffolding | Great question. Certainly. I hope this helps. | Cut it. |
+| Fancy verb | serves as, stands as, represents, showcases | Use is, has, uses, shows. |
+| Vague source | experts say, many believe, studies show | Name the source or cut it. |
+
+## Plain English Tests
+
+Before returning the rewrite, ask:
+
+1. Can the reader picture the thing?
+2. Does this say what they will have, do, see, or decide?
+3. Would a smart 10-year-old understand it?
+4. Would a real person say this out loud?
+5. Did we replace vague value with a concrete example?
+6. Is there any slogan rhythm left?
+7. Are there any em dashes?
 
 ## Rewrite Examples
 
-Inflated:
+Bad:
+
+> Stop prompting from scratch. Start delegating real work.
+
+Better:
+
+> Instead of explaining your whole situation every time, give the assistant a job: check my calendar, read my notes, draft the follow-up, and tell me what needs my attention.
+
+Bad:
+
+> Not a toy chatbot. Not another prompt pack. Not AI productivity tips.
+
+Better:
+
+> By the end, you will have an assistant running. You can message it. It can read your workspace. It can follow written skills. It can draft work for you to review.
+
+Bad:
+
+> Unlock the power of AI agents.
+
+Better:
+
+> Give the assistant one job, such as preparing your day each morning. Then give it the files, tools, and rules it needs to do that job without you explaining everything again.
+
+Bad:
+
+> This course transforms the way you work by helping you build an agentic operating system.
+
+Better:
+
+> This course helps you build an assistant that checks your calendar, reads your tasks, and gives you a short plan for the day.
+
+Bad:
 
 > The institute was established in 1989, marking a pivotal moment in regional statistics.
 
-Becomes:
+Better:
 
 > The institute was established in 1989 to publish regional statistics independently.
 
-Negative parallelism:
-
-> It's not just autocomplete; it's a creative partner.
-
-Becomes:
-
-> It suggests code, tests, and refactors.
-
-Rule of three:
-
-> The event delivers innovation, inspiration, and industry insights.
-
-Becomes:
-
-> The event mixes talks with informal time between sessions.
-
-Vague attribution:
-
-> Experts believe the river plays a crucial role.
-
-Becomes:
-
-> The river supports several endemic fish species, according to the 2019 survey.
-
-Passive:
-
-> No configuration file needed.
-
-Becomes:
-
-> You don't need a configuration file.
-
-## Audit
-
-After the draft, check:
-
-- Uniform paragraph length or sentence rhythm.
-- No opinion, risk, or concrete claim.
-- Plausible but unverified numbers, studies, quotes, or experts.
-- Slogan ending instead of specific ending.
-- Tidy contrast rebuilt under different words.
-- Surviving em dashes, signposts, or AI vocabulary clusters.
-
 ## Output
 
-Return in this order:
+Default output:
 
-1. **Draft rewrite.**
-2. **What still sounds AI generated?** 2-4 bullets.
-3. **Final rewrite.**
-4. **Changes made.** Optional, brief.
+1. `Rewrite:` the improved text.
+2. `Changed:` 2 to 4 short notes if useful.
 
-## Mini Example
+When the user asks why something is bad, return:
 
-Input:
+1. `Pattern:` the main issue.
+2. `Why it fails:` one plain sentence.
+3. `Rewrite:` the improved text.
 
-> Great question! AI-assisted coding serves as a testament to the transformative potential of large language models. It is not just autocomplete, it is a movement. In conclusion, exciting times lie ahead.
-
-Final rewrite:
-
-> AI coding assistants are good for chores: config files, test scaffolding, and repetitive refactors. I still read the output closely, because I have accepted code that passed lint and missed the point.
+Keep the answer short unless the user asks for detail.
